@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3efe6">
+<title>Marea · Rolecha ⇄ Isla Nao</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Marea Nao">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d5f7a'/%3E%3Cpath d='M3 19c4-5 7-5 10 0s6 5 10 0 5-4 6-3v13H3z' fill='%237fd0dc'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#f3efe6; --card:#fbf9f4; --ink:#16303a; --muted:#6b7f86; --line:#e0d9ca;
+    --open:#23805a; --open-bg:#dff1e6; --shut:#b8452f; --shut-bg:#f7e1da; --warn:#a86a00; --warn-bg:#f8ebcb;
+    --sea:#2b86a0; --amber:#e3a52b;
+    --sky1:#8fc7e3; --sky2:#e4f1ee; --orb:#fff6cf; --tint:rgba(0,0,0,0); --stars:0;
+  }
+  body[data-sky="dawn"]{ --sky1:#7aa6cf; --sky2:#f6cfa6; --orb:#ffe2a8; --tint:rgba(240,150,80,.10); }
+  body[data-sky="dusk"]{ --sky1:#4b5f95; --sky2:#f0a777; --orb:#ffc38a; --tint:rgba(150,70,60,.18); }
+  body[data-sky="night"]{
+    --bg:#0e1a22; --card:#15252f; --ink:#e6eef0; --muted:#8aa0a8; --line:#24394a;
+    --open:#5fd09a; --open-bg:#143a2c; --shut:#f08a72; --shut-bg:#43201a; --warn:#f0c060; --warn-bg:#3d3013;
+    --sea:#6cc3d8;
+    --sky1:#0a1430; --sky2:#243a5c; --orb:#e9edf5; --tint:rgba(8,16,44,.50); --stars:1;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-variant-numeric:tabular-nums; transition:background .6s,color .6s}
+  main{max-width:860px;margin:0 auto;padding:20px 16px 40px}
+  header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
+  .place{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .clock{font-size:13px;color:var(--muted)}
+
+  .status{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px;margin-bottom:16px}
+  .status h1{margin:0;font-size:clamp(34px,7.5vw,54px);line-height:1.02;letter-spacing:-.02em;font-weight:750}
+  .status p{margin:8px 0 0;font-size:17px;color:var(--muted)}
+  .status p b{color:var(--ink);font-weight:650}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:650;padding:5px 12px;border-radius:99px;margin-bottom:10px}
+  .pill i{width:9px;height:9px;border-radius:50%;background:currentColor}
+  [data-state="open"] .pill{color:var(--open);background:var(--open-bg)}
+  [data-state="shut"] .pill{color:var(--shut);background:var(--shut-bg)}
+  [data-state="warn"] .pill{color:var(--warn);background:var(--warn-bg)}
+  [data-state="open"] .pill i{animation:pulse 2.4s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .level{text-align:right;margin-left:auto}
+  .level .num{font-size:clamp(30px,6vw,42px);font-weight:700;letter-spacing:-.02em;line-height:1}
+  .level .trend{font-size:14px;color:var(--muted);margin-top:6px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:background .6s,border-color .6s}
+  .scene svg,.chart svg{display:block;width:100%;height:auto}
+  .chart{margin-top:14px;padding:14px 0 4px;touch-action:pan-y}
+  .card h2{margin:0 16px 6px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;gap:8px}
+  .card h2 span{letter-spacing:0;text-transform:none;font-weight:500}
+  .key{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--open);opacity:.45;margin-right:5px;vertical-align:-1px}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  @media(max-width:620px){.cols{grid-template-columns:1fr}}
+  .list{padding:14px 0 6px}
+  .list ul{list-style:none;margin:0;padding:0}
+  .list li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 16px;border-top:1px solid var(--line)}
+  .list li small{color:var(--muted);font-size:13px}
+  .list li .r{text-align:right;color:var(--muted);font-size:14px;white-space:nowrap}
+  .list li b{font-weight:650}
+  .list .empty{color:var(--muted);padding:10px 16px;font-size:14px}
+  .up{color:var(--sea)} .dn{color:var(--amber)}
+
+  .cal{margin-top:14px;padding:14px 16px 16px}
+  .cal h2{margin:0 0 4px}
+  .cal p{margin:0 0 12px;color:var(--muted);font-size:14px;max-width:62ch}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+  input[type=range]{flex:1 1 220px;accent-color:var(--amber);height:28px}
+  output{font-weight:700;min-width:74px;text-align:right}
+  button{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:transparent;border:1px solid var(--line);
+    border-radius:10px;padding:9px 14px;cursor:pointer}
+  button:hover{border-color:var(--muted)}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
+  .note{margin:0;padding:9px 16px 11px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+  .cal a{color:var(--sea);font-weight:600}
+  a.btn{font-size:14px;font-weight:650;color:#fff;background:var(--sea);border-radius:10px;padding:10px 16px;text-decoration:none}
+  body[data-sky="night"] a.btn{color:#0e1a22}
+  .cal code{font:600 13px ui-monospace,Consolas,monospace;background:var(--line);padding:2px 6px;border-radius:6px;word-break:break-all}
+  #avMsg{font-size:14px;color:var(--muted)}
+  .cal p.last{margin:12px 0 0}
+  footer{margin-top:18px;color:var(--muted);font-size:12.5px;line-height:1.5}
+  .err{color:var(--shut)}
+  svg text{font-family:inherit}
+</style>
+</head>
+<body data-sky="day">
+<main>
+  <header>
+    <div class="place">Rolecha ⇄ Isla Nao</div>
+    <div class="clock" id="clock">—</div>
+  </header>
+
+  <section class="status" id="status" data-state="shut" aria-live="polite">
+    <div>
+      <div class="pill"><i></i><span id="pill">Cargando marea…</span></div>
+      <h1 id="title">—</h1>
+      <p id="sub">&nbsp;</p>
+    </div>
+    <div class="level">
+      <div class="num" id="num">—</div>
+      <div class="trend" id="trend">&nbsp;</div>
+    </div>
+  </section>
+
+  <div class="card scene">
+    <svg id="scene" viewBox="0 0 800 300" role="img" aria-label="Vista del paso entre Rolecha e Isla Nao con el nivel actual del agua">
+      <defs>
+        <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color:var(--sky1)"/><stop offset=".6" style="stop-color:var(--sky2)"/>
+        </linearGradient>
+        <linearGradient id="gSea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#58b6c9" stop-opacity=".68"/><stop offset="1" stop-color="#14506b" stop-opacity=".9"/>
+        </linearGradient>
+        <linearGradient id="gLand" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="300">
+          <stop offset="0" stop-color="#5f8f5c"/><stop id="ls1" offset=".2" stop-color="#d6c294"/><stop offset="1" stop-color="#9c8a69"/>
+        </linearGradient>
+      </defs>
+      <rect width="800" height="300" fill="url(#gSky)"/>
+      <g fill="#fff" style="opacity:var(--stars)">
+        <circle cx="120" cy="24" r="1.4"/><circle cx="200" cy="58" r="1"/><circle cx="330" cy="18" r="1.3"/>
+        <circle cx="400" cy="50" r="1.1"/><circle cx="690" cy="40" r="1.1"/><circle cx="160" cy="80" r="1"/><circle cx="710" cy="16" r="1.3"/>
+      </g>
+      <circle cx="255" cy="38" r="15" style="fill:var(--orb)"/>
+      <path id="land" fill="url(#gLand)"/>
+      <g id="deco"></g>
+      <text id="dim" x="255" text-anchor="middle" font-size="12" font-weight="600" fill="#5d5138" opacity=".8"></text>
+      <path id="water" fill="url(#gSea)"/>
+      <path id="surf" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.5"/>
+      <rect width="800" height="300" style="fill:var(--tint)" pointer-events="none"/>
+      <g id="staff"></g>
+      <g font-weight="650" fill="#fff" stroke="rgba(10,35,48,.6)" stroke-width="3" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">
+        <text id="barLabel" x="255" font-size="15"></text>
+        <text id="lblA" font-size="14" text-anchor="start">Rolecha</text>
+        <text id="lblB" font-size="14">Isla Nao</text>
+      </g>
+    </svg>
+    <p class="note">Distancias a escala aproximada: el paso mide unos 500–600 m y la isla unos 450 m de ancho y 30 m de alto. La altura de la marea está ampliada para poder leerla.</p>
+  </div>
+
+  <div class="card chart">
+    <h2>Próximas horas <span><i class="key"></i>se puede cruzar</span></h2>
+    <svg id="chart" viewBox="0 0 800 230" role="img" aria-label="Curva de marea de las próximas 36 horas"></svg>
+  </div>
+
+  <div class="cols">
+    <div class="card list"><h2>Ventanas para cruzar</h2><ul id="wins"></ul></div>
+    <div class="card list"><h2>Pleamares y bajamares</h2><ul id="tides"></ul></div>
+  </div>
+
+  <div class="card cal">
+    <h2>Límite de cruce</h2>
+    <p>Es la altura de marea bajo la cual el paso queda seco. Parte como una estimación: la próxima vez que veas que el paso recién se despeja (o recién se tapa), pulsa el botón y la app queda calibrada.</p>
+    <div class="row">
+      <input id="thr" type="range" step="0.05" aria-label="Límite de cruce en metros">
+      <output id="thrOut">—</output>
+      <button id="calib" type="button">Usar el nivel de ahora</button>
+    </div>
+  </div>
+
+  <div class="card cal">
+    <h2>Avisos en el teléfono</h2>
+    <p id="avOff">Para activar los avisos, abre la app una vez con tu enlace personal (el del código QR).</p>
+    <div id="avOn" hidden>
+      <p>Llegan por <b>ntfy</b>, una app gratuita de notificaciones: instálala
+        (<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> ·
+        <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>) y pulsa <b>Suscribirme</b>.
+        Si el botón no abre ntfy, suscríbete a mano al canal <code id="avCanal"></code>.</p>
+      <div class="row">
+        <a class="btn" id="avSub" href="#">Suscribirme</a>
+        <button id="avTest" type="button">Enviar aviso de prueba</button>
+        <span id="avMsg" role="status"></span>
+      </div>
+      <p class="last" id="avState"></p>
+    </div>
+  </div>
+
+  <footer id="foot">Cargando…</footer>
+</main>
+
+<script>
+(() => {
+  const LAT = -41.9085, LON = -72.8827, TZ = 'America/Santiago';
+  const API = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}` +
+              `&hourly=sea_level_height_msl&timeformat=unixtime&timezone=GMT&past_days=1&forecast_days=7`;
+  const H = 3600e3, MIN = 60e3, $ = id => document.getElementById(id);
+  const store = {
+    get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v){ try { localStorage.setItem(k, v); } catch {} }
+  };
+
+  let D = null;            // { t0, v[], fetched }
+  let S = null, EXT = [];  // muestras por minuto, extremos
+  let CROSS = [];          // cruces del límite: { t, opens }
+  let lim = 3;
+  let thr = parseFloat(store.get('mareas.umbral')); if (!isFinite(thr)) thr = -0.5;
+  let fetchErr = null;
+
+  /* ---------- formato ---------- */
+  const fTime = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  const fKey  = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
+  const fDow  = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'short' });
+  const fHour = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hourCycle: 'h23' });
+  const fLong = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' });
+  const hhmm = t => fTime.format(t);
+  const day = t => {
+    const k = fKey.format(t), now = Date.now();
+    if (k === fKey.format(now)) return 'hoy';
+    if (k === fKey.format(now + 24 * H)) return 'mañana';
+    return fDow.format(t).replace('.', '');
+  };
+  const when = t => { const d = day(t); return d === 'hoy' ? hhmm(t) : `${d} ${hhmm(t)}`; };
+  const fmtH = (h, d = 2) => (h < 0 ? '−' : '+') + Math.abs(h).toFixed(d).replace('.', ',') + ' m';
+  const fmtCm = m => Math.round(Math.abs(m) * 100) + ' cm';
+  const dur = ms => {
+    const m = Math.max(0, Math.round(ms / MIN)), h = Math.floor(m / 60);
+    return h ? `${h} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`;
+  };
+  const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+  /* ---------- datos ---------- */
+  function hAt(ms) {
+    const v = D.v;
+    let x = (ms - D.t0) / H; x = Math.max(0, Math.min(v.length - 1.0001, x));
+    const i = Math.floor(x), f = x - i;
+    const p0 = v[Math.max(0, i - 1)], p1 = v[i], p2 = v[i + 1], p3 = v[Math.min(v.length - 1, i + 2)];
+    return .5 * (2 * p1 + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f * f + (-p0 + 3 * p1 - 3 * p2 + p3) * f * f * f);
+  }
+  const tEnd = () => D.t0 + (D.v.length - 1) * H;
+
+  function analyze() {
+    const n = (D.v.length - 1) * 60 + 1;
+    S = new Float32Array(n);
+    for (let i = 0; i < n; i++) S[i] = hAt(D.t0 + i * MIN);
+    EXT = [];
+    for (let i = 1; i < n - 1; i++) {
+      if (S[i] > S[i - 1] && S[i] >= S[i + 1]) EXT.push({ t: D.t0 + i * MIN, h: S[i], high: true });
+      else if (S[i] < S[i - 1] && S[i] <= S[i + 1]) EXT.push({ t: D.t0 + i * MIN, h: S[i], high: false });
+    }
+    let m = 0; for (const x of D.v) m = Math.max(m, Math.abs(x));
+    lim = Math.max(3, Math.ceil(m + 0.3));
+    const r = $('thr'); r.min = -lim; r.max = lim;
+    thr = Math.max(-lim, Math.min(lim, thr)); r.value = thr;
+    crossings();
+  }
+  function crossings() {
+    CROSS = [];
+    for (let i = 1; i < S.length; i++) {
+      const a = S[i - 1] - thr, b = S[i] - thr;
+      if ((a < 0) !== (b < 0)) CROSS.push({ t: D.t0 + (i - 1 + a / (a - b)) * MIN, opens: b < 0 });
+    }
+  }
+  function setData(d) { D = d; analyze(); buildScene(); render(); }
+
+  async function load() {
+    try {
+      const r = await fetch(API, { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      const t = j.hourly.time, raw = j.hourly.sea_level_height_msl, v = [];
+      for (const x of raw) { if (x == null) break; v.push(x); }
+      if (v.length < 24) throw new Error('sin datos de marea');
+      const d = { t0: t[0] * 1000, v, fetched: Date.now() };
+      store.set('mareas.datos', JSON.stringify(d));
+      fetchErr = null; setData(d);
+    } catch (e) {
+      fetchErr = e.message || String(e);
+      if (!D) {
+        try {
+          const c = JSON.parse(store.get('mareas.datos'));
+          if (c && c.t0 + (c.v.length - 1) * H > Date.now() + H) { setData(c); return; }
+        } catch {}
+        $('pill').textContent = 'Sin conexión';
+        $('title').textContent = 'No hay datos';
+        $('sub').textContent = 'No se pudo descargar la marea. Revisa tu internet; se reintenta solo.';
+      }
+      foot();
+    }
+  }
+
+  /* ---------- escena ---------- */
+  const VH = 300, Y0 = 205, ppm = () => 72 / lim, yOf = h => Y0 - h * ppm();
+  const sm = (a, b, x) => { const u = Math.max(0, Math.min(1, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
+  const mix = (a, b, u) => a + (b - a) * u;
+  // Perfil del terreno en px. Horizontal ≈ 0,6 px por metro (medidas de OpenStreetMap):
+  // costa de Rolecha | paso ≈ 600 m entre líneas de pleamar | isla ≈ 450 m de ancho y ≈ 30 m de alto.
+  function prof(x) {
+    const hi = yOf(lim + .35), t = yOf(thr), top = hi - 56;
+    if (x < 60)  return mix(hi - 38, hi, sm(26, 60, x));
+    if (x < 175) return mix(hi, t, sm(60, 175, x));
+    if (x < 335) return t - 1.5 * Math.sin((x - 175) / 160 * Math.PI * 3) ** 2;
+    if (x < 420) return mix(t, hi, sm(335, 420, x));
+    if (x < 475) return mix(hi, top, sm(420, 475, x));
+    if (x < 625) return top - 5 * Math.sin((x - 475) / 150 * Math.PI);
+    if (x < 690) return mix(top, hi, sm(625, 690, x));
+    return mix(hi, VH + 30, sm(690, 736, x));
+  }
+  function buildScene() {
+    let d = `M0 ${VH}`;
+    for (let x = 0; x <= 800; x += 4) d += `L${x} ${prof(x).toFixed(1)}`;
+    $('land').setAttribute('d', d + `L800 ${VH}Z`);
+    const hi = yOf(lim + .35), y1 = hi - 14;
+    $('gLand').setAttribute('y1', y1);
+    $('ls1').setAttribute('offset', (20 / (VH - y1)).toFixed(3));
+
+    // árboles ≈ 15 m y casa ≈ 5 m, a la misma escala que la altura de la isla (≈ 30 m)
+    const tree = (x, s) => { const y = prof(x) + 1; return `<rect x="${x - 1}" y="${(y - 8 * s).toFixed(1)}" width="2" height="${(8 * s).toFixed(1)}" fill="#5a4632"/>` +
+      `<path d="M${x} ${(y - 46 * s).toFixed(1)}l${13 * s} ${24 * s}h-${7 * s}l${10 * s} ${18 * s}h-${32 * s}l${10 * s}-${18 * s}h-${7 * s}z" fill="#2f5d45"/>`; };
+    const ya = prof(20);
+    $('deco').innerHTML = tree(6, .5) + tree(38, .55) + tree(47, .45) +
+      `<rect x="14" y="${ya - 7}" width="13" height="8" fill="#f4ead6"/><path d="M12 ${ya - 7}l8.5-6 8.5 6z" fill="#a3442f"/>` +
+      `<rect x="19" y="${ya - 4}" width="3" height="5" fill="#6b4a36"/>` +
+      [[484, .42], [498, .52], [514, .6], [531, .5], [547, .62], [566, .55], [583, .6], [599, .5], [614, .58], [630, .45], [644, .4]].map(a => tree(a[0], a[1])).join('');
+    $('lblA').setAttribute('x', 6);   $('lblA').setAttribute('y', ya - 40);
+    $('lblB').setAttribute('x', 556); $('lblB').setAttribute('y', prof(550) - 38);
+    const t = yOf(thr);
+
+    // regla de mareas
+    let s = `<rect x="734" y="0" width="66" height="${VH}" fill="rgba(8,28,40,.45)"/>`;
+    for (let k = -lim * 2; k <= lim * 2; k++) {
+      const h = k / 2, y = yOf(h).toFixed(1), big = k % 2 === 0;
+      s += `<line x1="734" x2="${big ? 750 : 743}" y1="${y}" y2="${y}" stroke="#fff" stroke-width="${big ? 2 : 1}" opacity="${big ? .95 : .6}"/>`;
+      if (big) s += `<text x="793" y="${+y + 4.5}" text-anchor="end" font-size="13" font-weight="600" fill="#fff">${h > 0 ? '+' : h < 0 ? '−' : ''}${Math.abs(h)}</text>`;
+    }
+    s += `<line x1="734" x2="800" y1="${t.toFixed(1)}" y2="${t.toFixed(1)}" stroke="#f2b632" stroke-width="2.5"/>` +
+         `<text x="754" y="${(t - 4).toFixed(1)}" font-size="10" font-weight="700" fill="#f7c95a">PASO</text>` +
+         `<path id="ptr" d="M0 0l-11-7v14z" fill="#fff"/>`;
+    $('staff').innerHTML = s;
+  }
+
+  let yWater = 250, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function drawWater(ts) {
+    const p = still ? 0 : ts / 1500;
+    let d = '';
+    for (let x = 0; x <= 800; x += 16)
+      d += `${x ? 'L' : 'M'}${x} ${(yWater + 1.6 * Math.sin(x / 46 + p) + .8 * Math.sin(x / 19 - p * 1.4)).toFixed(1)}`;
+    $('surf').setAttribute('d', d);
+    $('water').setAttribute('d', d + `L800 ${VH}L0 ${VH}Z`);
+    if (!still) requestAnimationFrame(drawWater);
+  }
+
+  /* ---------- render ---------- */
+  function sky(now) {
+    const hr = +fHour.format(now) + new Date(now).getUTCMinutes() / 60;
+    const s = hr < 5.75 || hr >= 21.5 ? 'night' : hr < 7.5 ? 'dawn' : hr < 19.75 ? 'day' : 'dusk';
+    if (document.body.dataset.sky !== s) {
+      document.body.dataset.sky = s;
+      document.querySelector('meta[name=theme-color]').content = s === 'night' ? '#0e1a22' : '#f3efe6';
+    }
+  }
+
+  function windows(now) {            // ventanas de cruce desde ahora
+    const out = [], end = tEnd();
+    let open = hAt(now) < thr, start = open ? now : null;
+    for (const c of CROSS) {
+      if (c.t <= now) continue;
+      if (c.opens) start = c.t;
+      else if (start != null) { out.push({ a: start, b: c.t, live: start === now }); start = null; }
+    }
+    if (start != null) out.push({ a: start, b: null, live: start === now });
+    for (const w of out) {
+      let m = Infinity;
+      for (let t = w.a; t <= (w.b ?? end); t += 5 * MIN) m = Math.min(m, hAt(t));
+      w.min = m;
+    }
+    return out;
+  }
+
+  function render() {
+    const now = Date.now();
+    $('clock').textContent = `${fLong.format(now)} · ${hhmm(now)}`;
+    sky(now);
+    if (!D) return;
+    if (now > tEnd() - 2 * H) { foot(); return; }
+
+    const h = hAt(now), rate = (hAt(now + 5 * MIN) - hAt(now - 5 * MIN)) * 6;   // m/h
+    const open = h < thr, wins = windows(now);
+    const next = CROSS.find(c => c.t > now);
+    const st = $('status'), cal = !store.get('mareas.umbralT') ? ' · límite sin calibrar' : '';
+
+    $('num').textContent = fmtH(h);
+    const slack = Math.abs(rate) < .06;
+    $('trend').textContent = slack ? 'casi quieta' : `${rate > 0 ? '↑ subiendo' : '↓ bajando'} · ${Math.round(Math.abs(rate) * 100)} cm/h`;
+
+    if (open) {
+      const left = next ? next.t - now : null;
+      const soon = left != null && left < 45 * MIN;
+      st.dataset.state = soon ? 'warn' : 'open';
+      $('pill').textContent = (soon ? 'Paso por cerrarse' : 'Paso abierto') + cal;
+      $('title').textContent = soon ? 'Se está cerrando' : 'Puedes cruzar';
+      $('sub').innerHTML = next
+        ? `El agua tapa el paso a las <b>${esc(when(next.t))}</b> · quedan <b>${dur(left)}</b>`
+        : 'El paso sigue seco durante todo el pronóstico.';
+    } else {
+      st.dataset.state = 'shut';
+      $('pill').textContent = 'Paso cubierto' + cal;
+      $('title').textContent = 'No cruces';
+      $('sub').innerHTML = next
+        ? `Se despeja a las <b>${esc(when(next.t))}</b> · en <b>${dur(next.t - now)}</b>`
+        : 'La marea no baja lo suficiente en los próximos días.';
+    }
+
+    // escena
+    yWater = yOf(h);
+    if (still) drawWater(0);
+    const bl = $('barLabel');
+    if (open) { bl.textContent = `paso seco · ${fmtCm(thr - h)} sobre el agua`; bl.setAttribute('y', yOf(thr) - 12); }
+    else      { bl.textContent = `${fmtCm(h - thr)} de agua sobre el paso`;     bl.setAttribute('y', yWater - 10); }
+    const ptr = document.getElementById('ptr');
+    if (ptr) ptr.setAttribute('transform', `translate(732 ${yWater.toFixed(1)})`);
+
+    chart(now);
+    lists(now, wins);
+    foot();
+  }
+
+  /* ---------- gráfico ---------- */
+  const CW = 800, CT = 30, CB = 196;
+  let cx = null, cy = null, cRange = null;
+  function chart(now) {
+    const a = Math.max(D.t0, now - 6 * H), b = Math.min(tEnd(), now + 36 * H);
+    cRange = [a, b];
+    cx = t => (t - a) / (b - a) * CW;
+    cy = h => CT + (lim - h) / (2 * lim) * (CB - CT);
+    let s = '';
+    // ventanas abiertas
+    let st = hAt(a) < thr ? a : null;
+    for (const c of CROSS) {
+      if (c.t < a || c.t > b) continue;
+      if (c.opens) st = c.t; else if (st != null) { s += band(st, c.t); st = null; }
+    }
+    if (st != null) s += band(st, b);
+    function band(p, q) { return `<rect x="${cx(p).toFixed(1)}" y="${CT}" width="${(cx(q) - cx(p)).toFixed(1)}" height="${CB - CT}" style="fill:var(--open)" opacity=".16"/>`; }
+    // horas
+    for (let t = Math.ceil(a / H) * H; t <= b; t += H) {
+      const hr = +fHour.format(t);
+      if (hr % 6) continue;
+      const x = cx(t).toFixed(1), mid = hr === 0;
+      s += `<line x1="${x}" x2="${x}" y1="${CT}" y2="${CB}" style="stroke:var(--line)" stroke-width="${mid ? 2 : 1}"/>`;
+      if (x > 24 && x < CW - 24)
+        s += `<text x="${x}" y="${CB + 20}" text-anchor="middle" font-size="14" font-weight="${mid ? 700 : 400}" style="fill:var(--muted)">${mid ? esc(day(t + H)) : String(hr).padStart(2, '0') + ':00'}</text>`;
+    }
+    // curva
+    let d = '';
+    for (let t = a; t <= b; t += 10 * MIN) d += `${d ? 'L' : 'M'}${cx(t).toFixed(1)} ${cy(hAt(t)).toFixed(1)}`;
+    s += `<path d="${d}L${CW} ${CB}L0 ${CB}Z" style="fill:var(--sea)" opacity=".13"/>`;
+    s += `<path d="${d}" fill="none" style="stroke:var(--sea)" stroke-width="3" stroke-linejoin="round"/>`;
+    // límite
+    const yt = cy(thr).toFixed(1);
+    s += `<line x1="0" x2="${CW}" y1="${yt}" y2="${yt}" stroke="#e3a52b" stroke-width="2" stroke-dasharray="7 6"/>`;
+    // extremos
+    for (const e of EXT) {
+      if (e.t < a + 20 * MIN || e.t > b - 20 * MIN) continue;
+      const x = cx(e.t), y = cy(e.h);
+      s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" style="fill:var(--card);stroke:var(--sea)" stroke-width="2.5"/>` +
+           `<text x="${x.toFixed(1)}" y="${(y + (e.high ? -11 : 22)).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="650" style="fill:var(--ink)">${hhmm(e.t)}</text>`;
+    }
+    // ahora
+    const xn = cx(now).toFixed(1), yn = cy(hAt(now)).toFixed(1);
+    s += `<line x1="${xn}" x2="${xn}" y1="${CT - 8}" y2="${CB}" style="stroke:var(--ink)" stroke-width="2"/>` +
+         `<circle cx="${xn}" cy="${yn}" r="6" style="fill:var(--ink)"/>` +
+         `<text x="${xn}" y="${CT - 13}" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--ink)">AHORA</text>`;
+    s += `<g id="probe" visibility="hidden"><line y1="${CT}" y2="${CB}" style="stroke:var(--muted)" stroke-dasharray="3 4"/>` +
+         `<circle r="5" style="fill:var(--amber)"/><text y="${CT - 13}" font-size="14" font-weight="700" style="fill:var(--ink);stroke:var(--card)" stroke-width="5" paint-order="stroke"></text></g>`;
+    $('chart').innerHTML = s;
+  }
+  function probe(ev) {
+    if (!cRange) return;
+    const r = $('chart').getBoundingClientRect();
+    const x = Math.max(0, Math.min(CW, (ev.clientX - r.left) / r.width * CW));
+    const t = cRange[0] + x / CW * (cRange[1] - cRange[0]), h = hAt(t);
+    const g = document.getElementById('probe'); if (!g) return;
+    g.setAttribute('visibility', 'visible');
+    const [ln, c, tx] = g.children;
+    ln.setAttribute('x1', x); ln.setAttribute('x2', x);
+    c.setAttribute('cx', x); c.setAttribute('cy', cy(h));
+    tx.textContent = `${when(t)} · ${fmtH(h)}`;
+    tx.setAttribute('text-anchor', x < 110 ? 'start' : x > CW - 110 ? 'end' : 'middle');
+    tx.setAttribute('x', x);
+  }
+  $('chart').addEventListener('pointermove', probe);
+  $('chart').addEventListener('pointerdown', probe);
+  $('chart').addEventListener('pointerleave', () => { const g = document.getElementById('probe'); if (g) g.setAttribute('visibility', 'hidden'); });
+
+  /* ---------- listas ---------- */
+  function lists(now, wins) {
+    $('wins').innerHTML = wins.slice(0, 5).map(w => {
+      const from = w.live ? 'ahora' : when(w.a);
+      const to = w.b ? hhmm(w.b) : '…';
+      const len = w.b ? dur(w.b - w.a) : '';
+      return `<li><span><b>${esc(from)} – ${to}</b></span><span class="r">${len}${len ? ' · ' : ''}mín ${fmtH(w.min, 1)}</span></li>`;
+    }).join('') || `<li class="empty">Con este límite el paso no se despeja en los próximos días.</li>`;
+    $('tides').innerHTML = EXT.filter(e => e.t > now).slice(0, 6).map(e =>
+      `<li><span><b class="${e.high ? 'up' : 'dn'}">${e.high ? '▲' : '▼'}</b> ${e.high ? 'Pleamar' : 'Bajamar'} <small>${esc(when(e.t))}</small></span><span class="r"><b>${fmtH(e.h)}</b></span></li>`
+    ).join('');
+  }
+
+  function foot() {
+    let s = '';
+    if (D) s += `Marea modelada para ${Math.abs(LAT).toFixed(3)}° S, ${Math.abs(LON).toFixed(3)}° O (Open-Meteo Marine), en metros sobre el nivel medio del mar. Descargada ${esc(when(D.fetched))}. `;
+    if (D && Date.now() > tEnd() - 2 * H) s += `<span class="err">Los datos guardados ya caducaron. </span>`;
+    if (fetchErr) s += `<span class="err">No se pudo actualizar (${esc(fetchErr)}); ${D ? 'se muestran los últimos datos guardados' : 'reintentando'}. </span>`;
+    s += `Es un pronóstico, no la tabla oficial del SHOA: el viento y la presión pueden adelantar o atrasar la marea. Cruza con margen y mirando el agua.`;
+    $('foot').innerHTML = s;
+  }
+
+  /* ---------- límite de cruce ---------- */
+  function setThr(v, remoteT) {
+    thr = Math.round(v * 100) / 100;
+    store.set('mareas.umbral', thr);
+    store.set('mareas.umbralT', remoteT || Date.now());
+    $('thr').value = thr; $('thrOut').textContent = fmtH(thr);
+    if (D) { crossings(); buildScene(); render(); }
+    if (!remoteT) pushCfg();
+    avisosUI();
+  }
+
+  /* ---------- avisos (ntfy) y sincronización del límite ---------- */
+  const NTFY = 'https://ntfy.sh/';
+  const ESTADO = 'https://raw.githubusercontent.com/MistaJ4Z/marea-nao/estado/estado.json';
+  let canal = store.get('mareas.canal'), estado = null, cfgTimer = null;
+  try {
+    const q = new URLSearchParams(location.search).get('canal');
+    if (q && /^[\w-]{8,64}$/.test(q)) {
+      canal = q; store.set('mareas.canal', q);
+      history.replaceState(null, '', location.pathname);
+    }
+  } catch {}
+  const localT = () => +store.get('mareas.umbralT') || 0;
+  const publish = o => fetch(NTFY, { method: 'POST', body: JSON.stringify(o) });
+
+  function pushCfg() {                 // avisa al robot de avisos (y a tus otros dispositivos) del nuevo límite
+    if (!canal) return;
+    clearTimeout(cfgTimer);
+    cfgTimer = setTimeout(() => {
+      publish({ topic: canal + '-cfg', message: JSON.stringify({ umbral: thr, t: localT() }) }).catch(() => {});
+    }, 1500);
+  }
+  async function sync() {
+    if (!canal) return;
+    let best = null;
+    try {
+      const r = await fetch(ESTADO, { cache: 'no-store' });
+      if (r.ok) { estado = await r.json(); if (typeof estado.umbral === 'number') best = { umbral: estado.umbral, t: estado.umbralT || 0 }; }
+    } catch {}
+    try {
+      const r = await fetch(`${NTFY}${canal}-cfg/json?poll=1&since=12h`);
+      for (const ln of (await r.text()).split('\n')) {
+        try {
+          const m = JSON.parse(ln); if (m.event !== 'message') continue;
+          const c = JSON.parse(m.message);
+          if (typeof c.umbral === 'number' && (!best || c.t > best.t)) best = c;
+        } catch {}
+      }
+    } catch {}
+    if (best && best.t > localT()) setThr(best.umbral, best.t);
+    else if (localT() && (!best || localT() > best.t)) pushCfg();
+    avisosUI();
+  }
+  function avisosUI() {
+    $('avOff').hidden = !!canal; $('avOn').hidden = !canal;
+    if (!canal) return;
+    $('avCanal').textContent = canal;
+    $('avSub').href = 'ntfy://ntfy.sh/' + canal;
+    let s = localT()
+      ? `Límite calibrado en <b>${fmtH(thr)}</b>: recibirás bajamar, pleamar, el momento en que se despeja el paso y un aviso 45 min antes de que se cierre.`
+      : 'Aún sin calibrar: por ahora solo llegan pleamar y bajamar. Los avisos de cruce empiezan cuando calibres el límite.';
+    s += ' Silencio de 23:00 a 07:00.';
+    if (estado && estado.hasta) s += ` Avisos programados hasta las ${esc(when(estado.hasta))}.`;
+    $('avState').innerHTML = s;
+  }
+  $('avTest').addEventListener('click', async () => {
+    $('avMsg').textContent = 'Enviando…';
+    try {
+      const r = await publish({ topic: canal, title: 'Aviso de prueba', message: 'Los avisos de marea de Rolecha ⇄ Isla Nao funcionan.', tags: ['ocean'] });
+      $('avMsg').textContent = r.ok ? 'Enviado: debería llegar en segundos.' : 'No se pudo enviar (' + r.status + ').';
+    } catch { $('avMsg').textContent = 'Sin conexión.'; }
+  });
+  $('thr').addEventListener('input', e => setThr(+e.target.value));
+  $('calib').addEventListener('click', () => { if (D) setThr(hAt(Date.now())); });
+  $('thr').min = -3; $('thr').max = 3; $('thr').value = thr; $('thrOut').textContent = fmtH(thr);
+
+  /* ---------- arranque ---------- */
+  try {
+    const c = JSON.parse(store.get('mareas.datos'));
+    if (c && c.t0 + (c.v.length - 1) * H > Date.now() + 2 * H) setData(c);
+  } catch {}
+  render();
+  requestAnimationFrame(drawWater);
+  load();
+  avisosUI(); sync();
+  setInterval(sync, 10 * 60e3);
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  setInterval(render, 20e3);
+  setInterval(load, 30 * 60e3);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    render();
+    if (!D || Date.now() - D.fetched > 30 * 60e3) load();
+  });
+  addEventListener('online', load);
+})();
+</script>
+</body>
+</html>
