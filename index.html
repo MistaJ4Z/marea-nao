@@ -84,7 +84,13 @@
   a.btn{font-size:14px;font-weight:650;color:#fff;background:var(--sea);border-radius:10px;padding:10px 16px;text-decoration:none}
   body[data-sky="night"] a.btn{color:#0e1a22}
   .cal code{font:600 13px ui-monospace,Consolas,monospace;background:var(--line);padding:2px 6px;border-radius:6px;word-break:break-all}
-  #avMsg{font-size:14px;color:var(--muted)}
+  #avMsg{font-size:14px;color:var(--ink);font-weight:600;margin:0}
+  #avMsg:empty{display:none}
+  .steps{margin:0 0 12px;padding-left:22px;font-size:15px}
+  .steps li{margin:0 0 10px;padding-left:2px}
+  .steps button{padding:6px 12px;margin-left:4px}
+  .steps a{white-space:nowrap}
+  #avSub{display:block;white-space:normal;font-weight:500;font-size:13.5px;margin-top:4px}
   .cal p.last{margin:12px 0 0}
   footer{margin-top:18px;color:var(--muted);font-size:12.5px;line-height:1.5}
   .err{color:var(--shut)}
@@ -169,15 +175,18 @@
     <h2>Avisos en el teléfono</h2>
     <p id="avOff">Para activar los avisos, abre la app una vez con tu enlace personal (el del código QR).</p>
     <div id="avOn" hidden>
-      <p>Llegan por <b>ntfy</b>, una app gratuita de notificaciones: instálala
-        (<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> ·
-        <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>) y pulsa <b>Suscribirme</b>.
-        Si el botón no abre ntfy, suscríbete a mano al canal <code id="avCanal"></code>.</p>
-      <div class="row">
-        <a class="btn" id="avSub" href="#">Suscribirme</a>
-        <button id="avTest" type="button">Enviar aviso de prueba</button>
-        <span id="avMsg" role="status"></span>
-      </div>
+      <p>Llegan por <b>ntfy</b>, una app gratuita de notificaciones. Se configura una sola vez:</p>
+      <ol class="steps">
+        <li>Instala ntfy:
+          <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> ·
+          <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>.</li>
+        <li>Copia el nombre de tu canal: <code id="avCanal"></code>
+          <button id="avCopy" type="button">Copiar</button></li>
+        <li>Abre ntfy, toca el botón <b>+</b>, pega el nombre en "tema" y toca <b>Suscribirse</b>. Acepta el permiso de notificaciones si lo pide.
+          <a id="avSub" href="#">En Android también puedes probar abrirlo directo.</a></li>
+        <li>Vuelve aquí y prueba: <button id="avTest" type="button">Enviar aviso de prueba</button></li>
+      </ol>
+      <p id="avMsg" role="status"></p>
       <p class="last" id="avState"></p>
     </div>
   </div>
@@ -568,7 +577,9 @@
     $('avOff').hidden = !!canal; $('avOn').hidden = !canal;
     if (!canal) return;
     $('avCanal').textContent = canal;
-    $('avSub').href = 'ntfy://ntfy.sh/' + canal;
+    $('avSub').href = /Android/i.test(navigator.userAgent)
+      ? `intent://ntfy.sh/${canal}#Intent;scheme=ntfy;package=io.heckel.ntfy;end`
+      : 'ntfy://ntfy.sh/' + canal;
     let s = localT()
       ? `Límite calibrado en <b>${fmtH(thr)}</b>: recibirás bajamar, pleamar, el momento en que se despeja el paso y un aviso 45 min antes de que se cierre.`
       : 'Aún sin calibrar: por ahora solo llegan pleamar y bajamar. Los avisos de cruce empiezan cuando calibres el límite.';
@@ -576,11 +587,23 @@
     if (estado && estado.hasta) s += ` Avisos programados hasta las ${esc(when(estado.hasta))}.`;
     $('avState').innerHTML = s;
   }
+  $('avCopy').addEventListener('click', async () => {
+    let ok = false;
+    try { await navigator.clipboard.writeText(canal); ok = true; } catch {
+      try {
+        const r = document.createRange(); r.selectNodeContents($('avCanal'));
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+        ok = document.execCommand('copy');
+      } catch {}
+    }
+    $('avCopy').textContent = ok ? 'Copiado ✓' : 'Mantén pulsado el nombre para copiarlo';
+    setTimeout(() => { $('avCopy').textContent = 'Copiar'; }, 4000);
+  });
   $('avTest').addEventListener('click', async () => {
     $('avMsg').textContent = 'Enviando…';
     try {
       const r = await publish({ topic: canal, title: 'Aviso de prueba', message: 'Los avisos de marea de Rolecha ⇄ Isla Nao funcionan.', tags: ['ocean'] });
-      $('avMsg').textContent = r.ok ? 'Enviado: debería llegar en segundos.' : 'No se pudo enviar (' + r.status + ').';
+      $('avMsg').textContent = r.ok ? 'Enviado ✓ Si ya te suscribiste en ntfy (paso 3), llega en segundos.' : 'No se pudo enviar (' + r.status + ').';
     } catch { $('avMsg').textContent = 'Sin conexión.'; }
   });
   $('thr').addEventListener('input', e => setThr(+e.target.value));
