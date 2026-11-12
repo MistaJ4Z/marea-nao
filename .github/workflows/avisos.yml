@@ -1,0 +1,42 @@
+name: Avisos de marea
+
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: avisos
+  cancel-in-progress: false
+
+jobs:
+  avisos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Recuperar estado
+        run: |
+          if git fetch -q origin estado 2>/dev/null; then
+            git show FETCH_HEAD:estado.json > estado.json
+          else
+            echo '{}' > estado.json
+          fi
+
+      - name: Programar avisos
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: node scripts/avisos.mjs
+
+      - name: Guardar estado
+        run: |
+          git config user.name "avisos-marea"
+          git config user.email "avisos-marea@users.noreply.github.com"
+          blob=$(git hash-object -w estado.json)
+          tree=$(printf '100644 blob %s\testado.json\n' "$blob" | git mktree)
+          commit=$(git commit-tree "$tree" -m "estado")
+          git push -q -f origin "$commit:refs/heads/estado"
