@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f3efe6">
+<meta name="theme-color" content="#04806f">
 <title>Bajamar</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -13,17 +13,18 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d5f7a'/%3E%3Cpath d='M3 19c4-5 7-5 10 0s6 5 10 0 5-4 6-3v13H3z' fill='%237fd0dc'/%3E%3C/svg%3E">
 <style>
   :root{
-    --bg:#f3efe6; --card:#fbf9f4; --ink:#16303a; --muted:#647a82; --line:#e0d9ca; --grid:#ebe5d8;
-    --open:#23805a; --open-bg:#dff1e6; --shut:#b8452f; --shut-bg:#f7e1da; --warn:#a86a00; --warn-bg:#f8ebcb;
-    --sea:#2b86a0; --amber:#d99a1e; --night:rgba(30,50,90,.07);
+    /* paleta tomada del video de inicio: mar verde azulado, agua baja, arena seca y arena mojada */
+    --bg:#f6ecdf; --card:#fffaf3; --ink:#0f3433; --muted:#62776f; --line:#ead9c3; --grid:#f0e3d1;
+    --open:#1f7d5c; --open-bg:#dcefe4; --shut:#b5472f; --shut-bg:#f6e0d6; --warn:#9a6410; --warn-bg:#f6e6c8;
+    --sea:#04806f; --amber:#b0783f; --night:rgba(10,60,55,.07);
     --sky1:#8fc7e3; --sky2:#e4f1ee; --orb:#fff6cf; --tint:rgba(0,0,0,0); --stars:0;
   }
   body[data-sky="dawn"]{ --sky1:#7aa6cf; --sky2:#f6cfa6; --orb:#ffe2a8; --tint:rgba(240,150,80,.10); }
   body[data-sky="dusk"]{ --sky1:#4b5f95; --sky2:#f0a777; --orb:#ffc38a; --tint:rgba(150,70,60,.18); }
   body[data-sky="night"]{
-    --bg:#0e1a22; --card:#15252f; --ink:#e6eef0; --muted:#8fa5ad; --line:#24394a; --grid:#1d3140;
+    --bg:#0a1e1d; --card:#112b29; --ink:#e8f2ee; --muted:#8eaca3; --line:#1e3f3b; --grid:#183532;
     --open:#5fd09a; --open-bg:#143a2c; --shut:#f08a72; --shut-bg:#43201a; --warn:#f0c060; --warn-bg:#3d3013;
-    --sea:#6cc3d8; --amber:#f0b84a; --night:rgba(0,0,0,.22);
+    --sea:#4fc7b2; --amber:#e3b585; --night:rgba(0,0,0,.22);
     --sky1:#0a1430; --sky2:#243a5c; --orb:#e9edf5; --tint:rgba(8,16,44,.50); --stars:1;
   }
   *{box-sizing:border-box}
@@ -48,7 +49,7 @@
   button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
   a{color:var(--sea);font-weight:600}
   a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;font-size:15px;font-weight:650;color:#fff;background:var(--sea);border-radius:12px;padding:10px 18px;text-decoration:none}
-  body[data-sky="night"] a.btn{color:#0e1a22}
+  body[data-sky="night"] a.btn{color:#0a1e1d}
   .note{margin:0;font-size:13px;color:var(--muted)}
   .err{color:var(--shut)}
   svg{display:block}
@@ -89,8 +90,8 @@
   .chart{touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:crosshair}
   .src{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 16px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
   .tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--line);color:var(--ink);vertical-align:2px;margin-left:6px;letter-spacing:0;text-transform:none}
-  .tag.viva{background:#d7ecf2;color:#17617a} .tag.muerta{background:var(--warn-bg);color:var(--warn)}
-  body[data-sky="night"] .tag.viva{background:#183d4a;color:#8fd6e8}
+  .tag.viva{background:#d3ece5;color:#04665a} .tag.muerta{background:var(--warn-bg);color:var(--warn)}
+  body[data-sky="night"] .tag.viva{background:#16423b;color:#8fe0cf}
 
   /* ---- tabla semanal ---- */
   .week{list-style:none;margin:0;padding:0}
@@ -158,9 +159,58 @@
   nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   nav.tabs button[aria-selected="true"]{color:var(--ink);background:color-mix(in srgb,var(--sea) 14%,transparent)}
   [role=tabpanel][hidden]{display:none}
+
+  /* ---- pantalla de carga ---- */
+  #splash{position:fixed;inset:0;z-index:50;overflow:hidden;background:#04806f url(splash/inicio.jpg) center/cover;
+    transition:opacity .7s ease,transform .9s ease}
+  #splash video,#splash .fb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  #splash .fb{background:url(splash/fin.jpg) center/cover;opacity:0}
+  #splash.fallback .fb{animation:spFade 3.2s ease-in-out .3s forwards}
+  #splash.fallback{animation:spZoom 3.6s ease-in-out forwards}
+  @keyframes spFade{to{opacity:1}} @keyframes spZoom{to{background-size:116% auto}}
+  #splash::after{content:"";position:absolute;inset:auto 0 0;height:42%;background:linear-gradient(to top,rgba(6,44,40,.62),rgba(6,44,40,0))}
+  #splash .sp-txt{position:absolute;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:1;text-align:center;color:#fff;
+    text-shadow:0 2px 18px rgba(0,30,28,.45)}
+  #splash .sp-txt b{display:block;font-size:clamp(46px,13vw,72px);font-weight:800;letter-spacing:-.03em;line-height:1}
+  #splash .sp-txt span{display:block;margin-top:10px;font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;opacity:.9}
+  #splash.out{opacity:0;transform:scale(1.04);pointer-events:none}
+  @media (min-aspect-ratio:4/5){
+    #splash{background:linear-gradient(#04806f,#63ae91 45%,#ecc8a8 85%)}
+    #splash video,#splash .fb{left:50%;width:auto;aspect-ratio:4/7;transform:translateX(-50%);box-shadow:0 0 80px rgba(0,40,36,.35)}
+  }
 </style>
 </head>
 <body data-sky="day">
+<div id="splash" aria-hidden="true">
+  <video id="spv" muted playsinline preload="auto" poster="splash/inicio.jpg" disablepictureinpicture>
+    <source src="splash/marea.webm" type="video/webm">
+    <source src="splash/marea.mp4" type="video/mp4">
+  </video>
+  <div class="fb"></div>
+  <div class="sp-txt"><b>Bajamar</b><span id="spMsg">Calculando mareas…</span></div>
+</div>
+<script>
+// Pantalla de carga: el video corre mientras la app calcula y descarga el pronóstico.
+// Se va cuando terminan las dos cosas (o al tocarla una vez que la app está lista).
+(() => {
+  const sp = document.getElementById('splash'), v = document.getElementById('spv');
+  let ready = false, done = false, gone = false;
+  const hide = () => { if (gone) return; gone = true; sp.classList.add('out'); setTimeout(() => sp.remove(), 900); };
+  const check = () => { if (ready && done) hide(); };
+  const finish = () => { done = true; check(); };
+  const fallback = () => { sp.classList.add('fallback'); v.remove(); setTimeout(finish, 3600); };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { v.remove(); setTimeout(finish, 900); }
+  else {
+    v.addEventListener('ended', finish);
+    v.querySelector('source:last-of-type').addEventListener('error', fallback);
+    const p = v.play(); if (p && p.catch) p.catch(fallback);
+    setTimeout(finish, 7000);                 // por si el video se traba
+  }
+  window.splashReady = () => { ready = true; document.getElementById('spMsg').textContent = 'Listo'; check(); };
+  setTimeout(() => window.splashReady(), 10000);   // nunca más de 10 s
+  sp.addEventListener('click', () => { if (ready) hide(); });
+})();
+</script>
 <main>
   <header>
     <div class="place" id="place">Isla Nao</div>
@@ -736,7 +786,7 @@ function sky(now) {
   const s = hr < 5.75 || hr >= 21.5 ? 'night' : hr < 7.5 ? 'dawn' : hr < 19.75 ? 'day' : 'dusk';
   if (document.body.dataset.sky !== s) {
     document.body.dataset.sky = s;
-    document.querySelector('meta[name=theme-color]').content = s === 'night' ? '#0e1a22' : '#f3efe6';
+    document.querySelector('meta[name=theme-color]').content = s === 'night' ? '#0a1e1d' : '#f6ecdf';
   }
 }
 function renderAll() {
@@ -855,7 +905,8 @@ try {
 buildScene();
 showTab(tab);
 requestAnimationFrame(drawWater);
-load(); avisosUI(); sync();
+Promise.race([load(), new Promise(r => setTimeout(r, 4000))]).then(() => window.splashReady && window.splashReady());
+avisosUI(); sync();
 setInterval(sync, 10 * 60e3);
 setInterval(() => { if (keyOf(Date.now()) !== keyOf(Date.now() - 20e3) && sel === keyOf(Date.now() - 20e3)) sel = today(); renderAll(); }, 20e3);
 setInterval(load, 30 * 60e3);

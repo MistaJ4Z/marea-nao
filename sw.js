@@ -1,6 +1,6 @@
 // Guarda la app para que abra sin conexión. Siempre intenta primero la red (así las actualizaciones llegan solas).
-const CACHE = 'marea-v2';
-const SHELL = ['./', 'lugares.js', 'marea-calc.js', 'qr.svg', 'manifest.webmanifest', 'icon-192.png'];
+const CACHE = 'marea-v3';
+const SHELL = ['./', 'splash/inicio.jpg', 'splash/fin.jpg', 'splash/marea.mp4', 'lugares.js', 'marea-calc.js', 'qr.svg', 'manifest.webmanifest', 'icon-192.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -13,7 +13,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || u.origin !== location.origin) return;   // marea y avisos van directo a la red
   e.respondWith(
     fetch(e.request).then(r => {
-      if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+      if (r.status === 200) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
       return r;
     }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || caches.match('./')))
   );
