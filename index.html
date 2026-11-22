@@ -161,7 +161,7 @@
   [role=tabpanel][hidden]{display:none}
 
   /* ---- pantalla de carga ---- */
-  @font-face{font-family:"Bajamar Serif";src:url(fonts/dmserif-bajamar.woff2) format("woff2");font-display:block}
+  @font-face{font-family:"Bajamar Script";src:url(fonts/pacifico-bajamar.woff2) format("woff2");font-display:block}
   #splash{position:fixed;inset:0;z-index:50;overflow:hidden;background:#04806f url(splash/inicio.jpg) center/cover;
     transition:opacity .8s ease,transform 1s ease}
   #splash .stage{position:absolute;inset:0}
@@ -171,13 +171,14 @@
   #splash.fallback .stage{animation:spZoom 3.6s ease-in-out forwards}
   @keyframes spFade{to{opacity:1}} @keyframes spZoom{to{transform:scale(1.14)}}
   /* "Bajamar" grabado en la arena: aparece cuando el agua se retira */
-  #splash .word{position:absolute;left:50%;top:53%;width:min(88%,560px);transform:translate(-50%,-50%);overflow:visible;
+  #splash .word{position:absolute;left:50%;top:52%;width:min(96%,620px);transform:translate(-50%,-50%);overflow:visible;
     opacity:0;-webkit-mask-image:linear-gradient(to top,#000 42%,transparent 58%);mask-image:linear-gradient(to top,#000 42%,transparent 58%);
     -webkit-mask-size:100% 260%;mask-size:100% 260%;-webkit-mask-position:0 0;mask-position:0 0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
   #splash.reveal .word{opacity:1;-webkit-mask-position:0 100%;mask-position:0 100%;
     transition:opacity .4s ease,-webkit-mask-position 2.2s cubic-bezier(.3,.1,.25,1),mask-position 2.2s cubic-bezier(.3,.1,.25,1)}
-  #splash .word text{font-family:"Bajamar Serif",Georgia,"Times New Roman",serif;font-size:150px;letter-spacing:-2px}
-  #splash .msg{position:absolute;left:0;right:0;top:calc(53% + min(15vw,96px));text-align:center;font-size:13px;font-weight:700;letter-spacing:.22em;
+  #splash .word{mix-blend-mode:hard-light;filter:saturate(.35)}
+  #splash .word text{font-family:"Bajamar Script","Brush Script MT",cursive;font-size:168px}
+  #splash .msg{position:absolute;left:0;right:0;top:calc(52% + min(25vw,160px));text-align:center;font-size:13px;font-weight:700;letter-spacing:.22em;
     text-transform:uppercase;color:#6e5236;text-shadow:0 1px 0 rgba(255,240,215,.6);opacity:0;transition:opacity .8s ease 1.2s}
   #splash.reveal .msg{opacity:.85}
   #splash.out{opacity:0;transform:scale(1.04);pointer-events:none}
@@ -185,7 +186,7 @@
     #splash{background:linear-gradient(#04806f,#63ae91 45%,#ecc8a8 85%)}
     #splash .stage{left:50%;right:auto;width:calc(100vh * 4 / 7);transform-origin:50% 42%;margin-left:calc(100vh * -2 / 7);box-shadow:0 0 80px rgba(0,40,36,.35);overflow:hidden}
     #splash .word{width:calc(100vh * 4 / 7 * .86)}
-    #splash .msg{top:calc(53% + 9vh)}
+    #splash .msg{top:calc(52% + 14vh)}
   }
 
   /* ---- lugar ---- */
@@ -256,32 +257,35 @@
     </video>
     <div class="fb"></div>
   </div>
-  <svg class="word" viewBox="0 0 640 200">
+  <svg class="word" viewBox="0 0 640 250" aria-hidden="true">
     <defs>
-      <!-- letras grabadas en arena mojada: bordes granulados, sombra interior arriba y labio claro abajo -->
-      <filter id="sandText" x="-5%" y="-25%" width="110%" height="150%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="noise"/>
-        <feDisplacementMap in="SourceAlpha" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" result="shape"/>
-        <feFlood id="wetColor" flood-color="#7d5d3d" result="col"><animate id="dry" attributeName="flood-color" from="#6b4e32" to="#a07a54" dur="2.6s" begin="indefinite" fill="freeze"/></feFlood>
-        <feComposite in="col" in2="shape" operator="in" result="base"/>
-        <feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="1" seed="3" result="grain"/>
-        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 .2  0 0 0 0 .13  0 0 0 0 .06  0 0 0 -1.6 1.15" result="grainA"/>
-        <feComposite in="grainA" in2="shape" operator="in" result="grainIn"/>
-        <feComponentTransfer in="shape" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
-        <feGaussianBlur in="inv" stdDeviation="3" result="invB"/>
-        <feOffset in="invB" dy="4" result="invO"/>
-        <feFlood flood-color="#2d1d0e" flood-opacity=".75"/>
-        <feComposite in2="invO" operator="in" result="shadowC"/>
-        <feComposite in="shadowC" in2="shape" operator="in" result="inner"/>
-        <feOffset in="shape" dy="3" result="lipO"/>
-        <feGaussianBlur in="lipO" stdDeviation="1.4" result="lipB"/>
-        <feFlood flood-color="#fff3df" flood-opacity=".75"/>
-        <feComposite in2="lipB" operator="in" result="lipC"/>
-        <feComposite in="lipC" in2="shape" operator="out" result="lip"/>
-        <feMerge><feMergeNode in="lip"/><feMergeNode in="base"/><feMergeNode in="grainIn"/><feMergeNode in="inner"/></feMerge>
+      <!-- "Bajamar" escrito con el dedo en la arena: surco hundido y borde de arena levantada.
+           Es un mapa de relieve iluminado desde arriba a la izquierda; el gris medio es neutro y
+           se mezcla (overlay) con la arena del video, así usa su misma textura. -->
+      <filter id="sandWrite" x="-8%" y="-30%" width="116%" height="160%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="5" result="warp"/>
+        <feDisplacementMap in="SourceAlpha" in2="warp" scale="7" xChannelSelector="R" yChannelSelector="G" result="L"/>
+        <feGaussianBlur in="L" stdDeviation="2.2" result="Lb"/>
+        <feMorphology in="L" operator="dilate" radius="8" result="Ld"/>
+        <feTurbulence type="fractalNoise" baseFrequency=".22" numOctaves="3" seed="9" result="lumps"/>
+        <feDisplacementMap in="Ld" in2="lumps" scale="17" xChannelSelector="R" yChannelSelector="B" result="Ldr"/>
+        <feGaussianBlur in="Ldr" stdDeviation="3" result="R"/>
+        <feMorphology in="L" operator="dilate" radius="10"/><feGaussianBlur stdDeviation="4" result="M"/>
+        <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" seed="2" result="g"/>
+        <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .9 0 0 0 -.38" result="gA"/>
+        <feComposite in="gA" in2="M" operator="in" result="gM"/>
+        <feComposite in="R" in2="Lb" operator="arithmetic" k2=".85" k3="-1" k4=".3" result="H0"/>
+        <feComposite in="H0" in2="gM" operator="arithmetic" k2="1" k3=".9" result="H"/>
+        <feDiffuseLighting in="H" surfaceScale="12" diffuseConstant=".81" lighting-color="#fff" result="lit">
+          <feDistantLight azimuth="235" elevation="38"/>
+        </feDiffuseLighting>
+        <feColorMatrix in="Lb" type="matrix" values="0 0 0 -.3 1  0 0 0 -.33 1  0 0 0 -.38 1  0 0 0 0 1" result="wet"/>
+        <feComposite in="lit" in2="wet" operator="arithmetic" k1="1" result="sh"/>
+        <!-- las sombras quedan en arena oscura, no en negro (0,5 sigue siendo neutro) -->
+        <feComponentTransfer in="sh"><feFuncR type="linear" slope=".72" intercept=".14"/><feFuncG type="linear" slope=".72" intercept=".14"/><feFuncB type="linear" slope=".72" intercept=".14"/></feComponentTransfer>
       </filter>
     </defs>
-    <text x="320" y="148" text-anchor="middle" filter="url(#sandText)">Bajamar</text>
+    <text x="320" y="178" text-anchor="middle" filter="url(#sandWrite)">Bajamar</text>
   </svg>
   <div class="msg" id="spMsg">Calculando mareas</div>
 </div>
@@ -292,15 +296,17 @@
 (() => {
   const sp = document.getElementById('splash'), v = document.getElementById('spv');
   let ready = false, done = false, gone = false, shown = false;
-  const hide = () => { if (gone) return; gone = true; sp.classList.add('out'); setTimeout(() => sp.remove(), 1000); };
+  const fijo = /splash=fijo/.test(location.search);   // para revisar el diseño: congela el último cuadro
+  const hide = () => { if (gone || fijo) return; gone = true; sp.classList.add('out'); setTimeout(() => sp.remove(), 1000); };
   const check = () => { if (ready && done) hide(); };
   const finish = () => { done = true; check(); };
-  const reveal = () => { if (shown) return; shown = true; sp.classList.add('reveal'); try { document.getElementById('dry').beginElement(); } catch {} };
+  const reveal = () => { if (shown) return; shown = true; sp.classList.add('reveal'); };
   const fallback = () => { if (sp.classList.contains('fallback')) return; sp.classList.add('fallback'); v.remove(); setTimeout(reveal, 1500); setTimeout(finish, 4200); };
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { v.remove(); sp.style.backgroundImage = 'url(splash/fin.jpg)'; reveal(); setTimeout(finish, 1200); }
   else {
     v.addEventListener('timeupdate', () => { if (v.currentTime > 1.5) reveal(); });
     v.addEventListener('ended', () => setTimeout(finish, 700));
+    if (fijo) v.addEventListener('loadedmetadata', () => { v.pause(); v.currentTime = 3.98; reveal(); });
     v.querySelector('source:last-of-type').addEventListener('error', fallback);
     const p = v.play(); if (p && p.catch) p.catch(fallback);
     setTimeout(() => { reveal(); finish(); }, 7500);      // por si el video se traba
