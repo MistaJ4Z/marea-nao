@@ -5,7 +5,7 @@ name: APK Android
 on:
   push:
     branches: [main]
-    paths: ['index.html', 'splash/**', 'lugares.js', 'marea-calc.js', 'icon-*.png', 'qr.svg', 'android/**', '.github/workflows/apk.yml']
+    paths: ['index.html', 'splash/**', 'fonts/**', 'lugares.js', 'marea-calc.js', 'icon-*.png', 'qr.svg', 'android/**', '.github/workflows/apk.yml']
   workflow_dispatch:
 
 permissions:
@@ -33,7 +33,7 @@ jobs:
       - name: Archivos web
         run: |
           mkdir -p build/www
-          cp -r index.html lugares.js marea-calc.js qr.svg icon-*.png manifest.webmanifest splash build/www/
+          cp -r index.html lugares.js marea-calc.js qr.svg icon-*.png manifest.webmanifest splash fonts build/www/
           cp android/capacitor.config.json build/
 
       - name: Proyecto Android (Capacitor)
@@ -61,6 +61,9 @@ jobs:
           </layer-list>
           XML
           sed -i 's/^ *//' $res/drawable/splash.xml
+          # ubicación: para "Usar mi ubicación" y para sugerir lugares
+          sed -i 's|<uses-permission android:name="android.permission.INTERNET" />|&\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />|' android/app/src/main/AndroidManifest.xml
+          grep -q ACCESS_FINE_LOCATION android/app/src/main/AndroidManifest.xml || { echo "::error::no se agregó el permiso de ubicación"; exit 1; }
           sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/; s/versionName .*/versionName \"$VERSION\"/" android/app/build.gradle
           sed -i 's/<string name="app_name">.*</<string name="app_name">Bajamar</; s/<string name="title_activity_main">.*</<string name="title_activity_main">Bajamar</' $res/values/strings.xml
 

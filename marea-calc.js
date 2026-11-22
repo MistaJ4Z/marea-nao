@@ -85,6 +85,40 @@ export function nodal(k, N) {
   };
 }
 
+// Ajuste por mínimos cuadrados: datos = [[t ms, h m], ...] → { z0, K: [amplitud, fase°] }
+// h = Z0 + Σ f [a cos(V+u) + b sin(V+u)]. Con menos de ~6 meses de datos se omiten
+// las componentes que no se alcanzan a separar (Sa, Ssa, T2, K2/P1 con 15 días…).
+export function ajustar(datos, nombres = Object.keys(CONST)) {
+  const span = (datos[datos.length - 1][0] - datos[0][0]) / 3600e3;
+  if (span < 4000) nombres = nombres.filter(k => !['Sa', 'Ssa', 'T2', 'MSf', 'Mm'].includes(k));
+  if (span < 1000) nombres = nombres.filter(k => !['K2', 'P1', 'NU2', 'MU2', 'L2', 'RHO1', 'J1', 'OO1', '2Q1', 'MNS2', '2SM2', 'Mf'].includes(k));
+  const m = 1 + 2 * nombres.length, A = Array.from({ length: m }, () => new Float64Array(m)), y = new Float64Array(m);
+  const row = new Float64Array(m);
+  for (const [t, h] of datos) {
+    const ast = astro(t);
+    row[0] = 1;
+    nombres.forEach((k, i) => {
+      const { f, u } = nodal(k, ast.N), arg = (CONST[k].V(ast) + u) * rad;
+      row[1 + 2 * i] = f * Math.cos(arg); row[2 + 2 * i] = f * Math.sin(arg);
+    });
+    for (let r = 0; r < m; r++) { y[r] += row[r] * h; for (let c = r; c < m; c++) A[r][c] += row[r] * row[c]; }
+  }
+  for (let r = 0; r < m; r++) for (let c = 0; c < r; c++) A[r][c] = A[c][r];
+  for (let c = 0; c < m; c++) {
+    let p = c; for (let r = c + 1; r < m; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    [A[c], A[p]] = [A[p], A[c]]; [y[c], y[p]] = [y[p], y[c]];
+    for (let r = c + 1; r < m; r++) { const k = A[r][c] / A[c][c]; if (!k) continue; for (let j = c; j < m; j++) A[r][j] -= k * A[c][j]; y[r] -= k * y[c]; }
+  }
+  const x = new Float64Array(m);
+  for (let r = m - 1; r >= 0; r--) { let s = y[r]; for (let j = r + 1; j < m; j++) s -= A[r][j] * x[j]; x[r] = s / A[r][r]; }
+  const c = { z0: +x[0].toFixed(4) };
+  nombres.forEach((k, i) => {
+    const a = x[1 + 2 * i], b = x[2 + 2 * i];
+    c[k] = [+Math.hypot(a, b).toFixed(4), +((Math.atan2(b, a) / rad + 360) % 360).toFixed(2)];
+  });
+  return c;
+}
+
 // predictor rápido para un lugar: recalcula f/u cada 6 h (cambian en años)
 export function predictor(arm) {
   const ks = Object.keys(arm).filter(k => k !== 'z0' && CONST[k]);

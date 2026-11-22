@@ -19,6 +19,26 @@ let estado = {};
 try { estado = JSON.parse(readFileSync('estado.json', 'utf8')); } catch {}
 const now = Date.now();
 
+/* ---- sugerencias de lugares: ntfy las guarda solo 12 h, aquí se archivan en sugerencias.json ---- */
+const SUGERENCIAS = 'bajamar-sug-e510f4450bb6';
+if (!DRY) {
+  let lista = [];
+  try { lista = JSON.parse(readFileSync('sugerencias.json', 'utf8')); } catch {}
+  try {
+    const r = await fetch(`https://ntfy.sh/${SUGERENCIAS}/json?poll=1&since=${estado.sugDesde || '12h'}`);
+    let nuevas = 0;
+    for (const ln of (await r.text()).split('\n')) {
+      try {
+        const m = JSON.parse(ln); if (m.event !== 'message' || lista.some(s => s.id === m.id)) continue;
+        lista.push({ id: m.id, fecha: new Date(m.time * 1000).toISOString(), titulo: m.title, texto: m.message, mapa: m.click || null });
+        estado.sugDesde = m.id; nuevas++;
+      } catch {}
+    }
+    writeFileSync('sugerencias.json', JSON.stringify(lista, null, 1));
+    console.log(`Sugerencias: ${nuevas} nuevas, ${lista.length} en total`);
+  } catch (e) { console.warn('No se pudieron leer las sugerencias:', e.message); }
+}
+
 /* ---- límite de cruce: lo publica la app al calibrar ---- */
 if (TOPIC) {
   try {

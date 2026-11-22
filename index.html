@@ -161,61 +161,165 @@
   [role=tabpanel][hidden]{display:none}
 
   /* ---- pantalla de carga ---- */
+  @font-face{font-family:"Bajamar Serif";src:url(fonts/dmserif-bajamar.woff2) format("woff2");font-display:block}
   #splash{position:fixed;inset:0;z-index:50;overflow:hidden;background:#04806f url(splash/inicio.jpg) center/cover;
-    transition:opacity .7s ease,transform .9s ease}
+    transition:opacity .8s ease,transform 1s ease}
+  #splash .stage{position:absolute;inset:0}
   #splash video,#splash .fb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   #splash .fb{background:url(splash/fin.jpg) center/cover;opacity:0}
   #splash.fallback .fb{animation:spFade 3.2s ease-in-out .3s forwards}
-  #splash.fallback{animation:spZoom 3.6s ease-in-out forwards}
-  @keyframes spFade{to{opacity:1}} @keyframes spZoom{to{background-size:116% auto}}
-  #splash::after{content:"";position:absolute;inset:auto 0 0;height:42%;background:linear-gradient(to top,rgba(6,44,40,.62),rgba(6,44,40,0))}
-  #splash .sp-txt{position:absolute;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:1;text-align:center;color:#fff;
-    text-shadow:0 2px 18px rgba(0,30,28,.45)}
-  #splash .sp-txt b{display:block;font-size:clamp(46px,13vw,72px);font-weight:800;letter-spacing:-.03em;line-height:1}
-  #splash .sp-txt span{display:block;margin-top:10px;font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;opacity:.9}
+  #splash.fallback .stage{animation:spZoom 3.6s ease-in-out forwards}
+  @keyframes spFade{to{opacity:1}} @keyframes spZoom{to{transform:scale(1.14)}}
+  /* "Bajamar" grabado en la arena: aparece cuando el agua se retira */
+  #splash .word{position:absolute;left:50%;top:53%;width:min(88%,560px);transform:translate(-50%,-50%);overflow:visible;
+    opacity:0;-webkit-mask-image:linear-gradient(to top,#000 42%,transparent 58%);mask-image:linear-gradient(to top,#000 42%,transparent 58%);
+    -webkit-mask-size:100% 260%;mask-size:100% 260%;-webkit-mask-position:0 0;mask-position:0 0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+  #splash.reveal .word{opacity:1;-webkit-mask-position:0 100%;mask-position:0 100%;
+    transition:opacity .4s ease,-webkit-mask-position 2.2s cubic-bezier(.3,.1,.25,1),mask-position 2.2s cubic-bezier(.3,.1,.25,1)}
+  #splash .word text{font-family:"Bajamar Serif",Georgia,"Times New Roman",serif;font-size:150px;letter-spacing:-2px}
+  #splash .msg{position:absolute;left:0;right:0;top:calc(53% + min(15vw,96px));text-align:center;font-size:13px;font-weight:700;letter-spacing:.22em;
+    text-transform:uppercase;color:#6e5236;text-shadow:0 1px 0 rgba(255,240,215,.6);opacity:0;transition:opacity .8s ease 1.2s}
+  #splash.reveal .msg{opacity:.85}
   #splash.out{opacity:0;transform:scale(1.04);pointer-events:none}
   @media (min-aspect-ratio:4/5){
     #splash{background:linear-gradient(#04806f,#63ae91 45%,#ecc8a8 85%)}
-    #splash video,#splash .fb{left:50%;width:auto;aspect-ratio:4/7;transform:translateX(-50%);box-shadow:0 0 80px rgba(0,40,36,.35)}
+    #splash .stage{left:50%;right:auto;width:calc(100vh * 4 / 7);transform-origin:50% 42%;margin-left:calc(100vh * -2 / 7);box-shadow:0 0 80px rgba(0,40,36,.35);overflow:hidden}
+    #splash .word{width:calc(100vh * 4 / 7 * .86)}
+    #splash .msg{top:calc(53% + 9vh)}
   }
+
+  /* ---- lugar ---- */
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+  .brandline{font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--sea);margin:0 0 6px 2px}
+  .placebtn{display:flex;align-items:center;gap:10px;text-align:left;background:var(--card);border-radius:14px;padding:8px 12px 8px 10px;min-height:54px;max-width:100%}
+  .placebtn svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--sea);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .placebtn b{display:block;font-size:17px;line-height:1.2}
+  .placebtn small{display:block;font-size:12.5px;color:var(--muted);font-weight:500}
+  .chip{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--sea) 13%,transparent);color:var(--sea);white-space:nowrap}
+  .chip.warn{background:var(--warn-bg);color:var(--warn)}
+  .info p{margin:8px 0 0;font-size:15px;color:var(--muted)}
+  .info .row{margin-top:12px}
+  .banner{display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-radius:14px;background:var(--warn-bg);margin:14px 0 0;font-size:14.5px;line-height:1.4}
+  .banner b{color:var(--warn)}
+  .banner span{flex:1 1 220px}
+  .banner button{background:var(--card)}
+  .banner[hidden],.info[hidden]{display:none}
+
+  /* ---- hojas (diálogos) ---- */
+  dialog.sheet{border:0;padding:0;margin:auto auto 0;width:min(580px,100%);max-width:100%;max-height:88vh;overflow:auto;border-radius:22px 22px 0 0;
+    background:var(--card);color:var(--ink);box-shadow:0 -12px 40px rgba(0,30,28,.25)}
+  @media(min-width:640px){ dialog.sheet{margin:auto;border-radius:22px} }
+  dialog.sheet::backdrop{background:rgba(4,30,28,.5)}
+  .sh-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 12px 12px 18px;background:var(--card);border-bottom:1px solid var(--line)}
+  .sh-head h2{margin:0;font-size:18px}
+  .sh-head button{border:0;font-size:26px;line-height:1;width:44px;padding:0}
+  .sh-body{padding:14px 16px 22px}
+  .sh-body input[type=search],.sh-body input[type=text],.sh-body textarea,.sh-body select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-height:46px}
+  .sh-body textarea{min-height:90px;resize:vertical}
+  .sh-body label{display:block;font-size:13.5px;font-weight:650;color:var(--muted);margin:14px 0 6px}
+  .sh-body .row{margin-top:10px}
+  .plist h3{margin:18px 0 4px;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .pl{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:11px 4px;min-height:52px}
+  .pl:hover{background:color-mix(in srgb,var(--line) 40%,transparent)}
+  .pl[aria-current="true"]{background:color-mix(in srgb,var(--sea) 10%,transparent)}
+  .pl b{display:block;font-size:16px}
+  .pl small{display:block;color:var(--muted);font-size:13px;font-weight:500}
+  .pl .tags{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+  .pl .km{font-size:13px;color:var(--muted);font-weight:600}
+  .near{padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--sea) 9%,transparent);margin-top:12px;font-size:14.5px}
+  .near button{margin-top:10px}
+
+  /* ---- calendario ---- */
+  .calhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+  .calhead b{font-size:18px}
+  .calhead b::first-letter{text-transform:uppercase}
+  .calhead button{width:46px;padding:0;font-size:22px}
+  .calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  .calgrid .wd{text-align:center;font-size:12px;font-weight:700;color:var(--muted);padding:4px 0}
+  .calgrid button{min-height:52px;padding:6px 0 7px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:16px;font-weight:650}
+  .calgrid button i{display:block;width:70%;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+  .calgrid button i::after{content:"";display:block;height:100%;width:var(--r);background:var(--sea)}
+  .calgrid button.out{opacity:.38}
+  .calgrid button.today{border-color:var(--sea);border-width:2px}
+  .calgrid button[aria-current="date"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+  .calgrid button[aria-current="date"] i{background:color-mix(in srgb,var(--card) 30%,transparent)}
+  .callegend{margin:12px 0 0;font-size:13px;color:var(--muted)}
+  .daynav button:disabled{opacity:.3;cursor:default}
 </style>
 </head>
 <body data-sky="day">
 <div id="splash" aria-hidden="true">
-  <video id="spv" muted playsinline preload="auto" poster="splash/inicio.jpg" disablepictureinpicture>
-    <source src="splash/marea.webm" type="video/webm">
-    <source src="splash/marea.mp4" type="video/mp4">
-  </video>
-  <div class="fb"></div>
-  <div class="sp-txt"><b>Bajamar</b><span id="spMsg">Calculando mareas…</span></div>
+  <div class="stage">
+    <video id="spv" muted playsinline preload="auto" poster="splash/inicio.jpg" disablepictureinpicture>
+      <source src="splash/marea.webm" type="video/webm">
+      <source src="splash/marea.mp4" type="video/mp4">
+    </video>
+    <div class="fb"></div>
+  </div>
+  <svg class="word" viewBox="0 0 640 200">
+    <defs>
+      <!-- letras grabadas en arena mojada: bordes granulados, sombra interior arriba y labio claro abajo -->
+      <filter id="sandText" x="-5%" y="-25%" width="110%" height="150%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="noise"/>
+        <feDisplacementMap in="SourceAlpha" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+        <feFlood id="wetColor" flood-color="#7d5d3d" result="col"><animate id="dry" attributeName="flood-color" from="#6b4e32" to="#a07a54" dur="2.6s" begin="indefinite" fill="freeze"/></feFlood>
+        <feComposite in="col" in2="shape" operator="in" result="base"/>
+        <feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="1" seed="3" result="grain"/>
+        <feColorMatrix in="grain" type="matrix" values="0 0 0 0 .2  0 0 0 0 .13  0 0 0 0 .06  0 0 0 -1.6 1.15" result="grainA"/>
+        <feComposite in="grainA" in2="shape" operator="in" result="grainIn"/>
+        <feComponentTransfer in="shape" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
+        <feGaussianBlur in="inv" stdDeviation="3" result="invB"/>
+        <feOffset in="invB" dy="4" result="invO"/>
+        <feFlood flood-color="#2d1d0e" flood-opacity=".75"/>
+        <feComposite in2="invO" operator="in" result="shadowC"/>
+        <feComposite in="shadowC" in2="shape" operator="in" result="inner"/>
+        <feOffset in="shape" dy="3" result="lipO"/>
+        <feGaussianBlur in="lipO" stdDeviation="1.4" result="lipB"/>
+        <feFlood flood-color="#fff3df" flood-opacity=".75"/>
+        <feComposite in2="lipB" operator="in" result="lipC"/>
+        <feComposite in="lipC" in2="shape" operator="out" result="lip"/>
+        <feMerge><feMergeNode in="lip"/><feMergeNode in="base"/><feMergeNode in="grainIn"/><feMergeNode in="inner"/></feMerge>
+      </filter>
+    </defs>
+    <text x="320" y="148" text-anchor="middle" filter="url(#sandText)">Bajamar</text>
+  </svg>
+  <div class="msg" id="spMsg">Calculando mareas</div>
 </div>
 <script>
 // Pantalla de carga: el video corre mientras la app calcula y descarga el pronóstico.
-// Se va cuando terminan las dos cosas (o al tocarla una vez que la app está lista).
+// "Bajamar" aparece grabado en la arena cuando el agua se retira. Se va cuando terminan
+// el video y la carga (o al tocarla, una vez que la app está lista).
 (() => {
   const sp = document.getElementById('splash'), v = document.getElementById('spv');
-  let ready = false, done = false, gone = false;
-  const hide = () => { if (gone) return; gone = true; sp.classList.add('out'); setTimeout(() => sp.remove(), 900); };
+  let ready = false, done = false, gone = false, shown = false;
+  const hide = () => { if (gone) return; gone = true; sp.classList.add('out'); setTimeout(() => sp.remove(), 1000); };
   const check = () => { if (ready && done) hide(); };
   const finish = () => { done = true; check(); };
-  const fallback = () => { sp.classList.add('fallback'); v.remove(); setTimeout(finish, 3600); };
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { v.remove(); setTimeout(finish, 900); }
+  const reveal = () => { if (shown) return; shown = true; sp.classList.add('reveal'); try { document.getElementById('dry').beginElement(); } catch {} };
+  const fallback = () => { if (sp.classList.contains('fallback')) return; sp.classList.add('fallback'); v.remove(); setTimeout(reveal, 1500); setTimeout(finish, 4200); };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { v.remove(); sp.style.backgroundImage = 'url(splash/fin.jpg)'; reveal(); setTimeout(finish, 1200); }
   else {
-    v.addEventListener('ended', finish);
+    v.addEventListener('timeupdate', () => { if (v.currentTime > 1.5) reveal(); });
+    v.addEventListener('ended', () => setTimeout(finish, 700));
     v.querySelector('source:last-of-type').addEventListener('error', fallback);
     const p = v.play(); if (p && p.catch) p.catch(fallback);
-    setTimeout(finish, 7000);                 // por si el video se traba
+    setTimeout(() => { reveal(); finish(); }, 7500);      // por si el video se traba
   }
-  window.splashReady = () => { ready = true; document.getElementById('spMsg').textContent = 'Listo'; check(); };
-  setTimeout(() => window.splashReady(), 10000);   // nunca más de 10 s
+  window.splashReady = () => { ready = true; check(); };
+  setTimeout(() => window.splashReady(), 10000);       // nunca más de 10 s
   sp.addEventListener('click', () => { if (ready) hide(); });
 })();
 </script>
 <main>
-  <header>
-    <div class="place" id="place">Isla Nao</div>
+  <div class="brandline">Bajamar</div>
+  <div class="top">
+    <button class="placebtn" id="placeBtn" type="button" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+      <span><b id="placeName">—</b><small id="placeSub">Elegir lugar</small></span>
+      <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--muted)"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
     <div class="clock" id="clock">—</div>
-  </header>
+  </div>
 
   <!-- ================= MAREAS ================= -->
   <section role="tabpanel" id="p-mareas" aria-labelledby="t-mareas">
@@ -227,6 +331,8 @@
       </div>
       <div class="nextx" id="nNext"></div>
     </div>
+
+    <div class="card pad info" id="placeInfo" hidden></div>
 
     <div class="card">
       <div class="daybar"></div>
@@ -255,35 +361,43 @@
       </div>
     </section>
 
-    <div class="card scene">
+    <div class="banner" id="calBanner" hidden></div>
+
+    <div class="card scene" id="sceneCard">
       <svg id="scene" viewBox="0 0 800 300" role="img" aria-label="Vista del paso con el nivel actual del agua">
         <defs>
           <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" style="stop-color:var(--sky1)"/><stop offset=".6" style="stop-color:var(--sky2)"/>
           </linearGradient>
           <linearGradient id="gSea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#58b6c9" stop-opacity=".68"/><stop offset="1" stop-color="#14506b" stop-opacity=".9"/>
+            <stop offset="0" stop-color="#3f9f97" stop-opacity=".78"/><stop offset=".35" stop-color="#1d756f" stop-opacity=".86"/><stop offset="1" stop-color="#0b3f40" stop-opacity=".94"/>
           </linearGradient>
           <linearGradient id="gLand" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="300">
             <stop offset="0" stop-color="#5f8f5c"/><stop id="ls1" offset=".2" stop-color="#d6c294"/><stop offset="1" stop-color="#9c8a69"/>
           </linearGradient>
+          <filter id="ripple" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency=".012 .09" numOctaves="2" seed="4" result="n"/>
+            <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.1 -.55"/>
+            <feComposite in2="SourceGraphic" operator="in"/>
+          </filter>
         </defs>
         <rect width="800" height="300" fill="url(#gSky)"/>
         <g fill="#fff" style="opacity:var(--stars)">
           <circle cx="120" cy="24" r="1.4"/><circle cx="200" cy="58" r="1"/><circle cx="330" cy="18" r="1.3"/>
           <circle cx="400" cy="50" r="1.1"/><circle cx="690" cy="40" r="1.1"/><circle cx="160" cy="80" r="1"/><circle cx="710" cy="16" r="1.3"/>
         </g>
-        <circle cx="255" cy="38" r="15" style="fill:var(--orb)"/>
         <path id="land" fill="url(#gLand)"/>
         <g id="deco"></g>
+        <image id="photo" href="splash/nao.jpg" x="0" y="0" width="800" height="300" preserveAspectRatio="xMidYMid slice"/>
         <path id="water" fill="url(#gSea)"/>
-        <path id="surf" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.5"/>
+        <path id="waterTex" fill="#fff" filter="url(#ripple)" opacity=".22"/>
+        <path id="surf" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.6"/>
         <rect width="800" height="300" style="fill:var(--tint)" pointer-events="none"/>
         <g id="staff"></g>
         <g font-weight="650" fill="#fff" stroke="rgba(10,35,48,.6)" stroke-width="3" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">
-          <text id="barLabel" x="255" font-size="15"></text>
-          <text id="lblA" font-size="14" text-anchor="start"></text>
-          <text id="lblB" font-size="14"></text>
+          <text id="barLabel" x="255" font-size="16"></text>
+          <text id="lblA" font-size="15" text-anchor="start"></text>
+          <text id="lblB" font-size="15"></text>
         </g>
       </svg>
       <p class="note">Distancias a escala aproximada: el paso mide unos 500–600 m y la isla unos 450 m de ancho y 30 m de alto. La altura de la marea está ampliada para poder leerla.</p>
@@ -302,7 +416,7 @@
     </div>
 
     <div class="card cal2 pad">
-      <h2>Límite de cruce</h2>
+      <h2>Límite de cruce <span id="thrState"></span></h2>
       <p>Es la altura de marea bajo la cual el paso queda seco. Si ves que el paso recién se despeja (o recién se tapa), pulsa el botón y la app queda calibrada.</p>
       <div class="row">
         <input id="thr" type="range" step="0.05" aria-label="Límite de cruce en metros">
@@ -311,7 +425,7 @@
       </div>
     </div>
 
-    <div class="card cal2 pad">
+    <div class="card cal2 pad" id="avCard">
       <h2>Avisos en el teléfono</h2>
       <div id="avOff">
         <p>Los avisos llegan por <b>ntfy</b> a un canal personal. Si tienes uno, pégalo aquí:</p>
@@ -352,10 +466,15 @@
         </div>
       </div>
     </div>
+    <div class="card pad">
+      <h2>¿Conoces un lugar que depende de la marea?</h2>
+      <p class="note" style="font-size:15px;margin-bottom:12px">Un paso a una isla, un camino por la playa, una zona para mariscar o una rampa para botes. Cuéntanos y lo calibramos para la app.</p>
+      <button type="button" class="sugOpen">Sugerir un lugar</button>
+    </div>
     <div class="card pad about">
       <h2>Cómo se calcula la marea</h2>
       <p>Para los próximos <b>10 días</b> se usa el pronóstico del modelo oceánico de Open-Meteo, descargado al abrir la app.</p>
-      <p>Para cualquier otra fecha, la marea se <b>calcula</b> con sus componentes astronómicas (la Luna y el Sol), igual que las tablas oficiales. Las constantes se obtuvieron de un año completo de datos de este punto. Comparado con el pronóstico, acierta la hora de pleamares y bajamares con unos <b>±3 minutos</b> y la altura con unos <b>±5 cm</b>. Funciona sin internet.</p>
+      <p>Para cualquier otra fecha, la marea se <b>calcula</b> con sus componentes astronómicas (la Luna y el Sol), igual que las tablas oficiales. Las constantes se obtienen de más de un año de datos de cada punto y se recalculan periódicamente. Comparado con el pronóstico, acierta la hora de pleamares y bajamares con unos <b>±3 minutos</b> y la altura con unos <b>±5 cm</b>. Funciona sin internet.</p>
       <p>El viento y la presión pueden mover la marea real unos centímetros o minutos. No es la tabla oficial del SHOA: cruza con margen y mirando el agua.</p>
       <p id="foot" class="note"></p>
     </div>
@@ -371,9 +490,55 @@
     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>Compartir</button>
 </nav>
 
+<!-- ================= DIÁLOGOS ================= -->
+<dialog class="sheet" id="dlgPlace" aria-labelledby="dlgPlaceT">
+  <div class="sh-head"><h2 id="dlgPlaceT">Elegir lugar</h2><button type="button" data-close aria-label="Cerrar">×</button></div>
+  <div class="sh-body">
+    <input type="search" id="q" placeholder="Buscar ciudad, isla, comuna o región" autocomplete="off" aria-label="Buscar lugar">
+    <div class="row"><button type="button" id="geoBtn">Usar mi ubicación</button><button type="button" class="sugOpen">Sugerir un lugar</button></div>
+    <div id="geoOut"></div>
+    <div class="plist" id="placeList"></div>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="dlgCal" aria-labelledby="dlgCalT">
+  <div class="sh-head"><h2 id="dlgCalT">Elegir fecha</h2><button type="button" data-close aria-label="Cerrar">×</button></div>
+  <div class="sh-body">
+    <div class="calhead"><button type="button" id="calPrev" aria-label="Mes anterior">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="Mes siguiente">›</button></div>
+    <div class="calgrid" id="calGrid"></div>
+    <p class="callegend">La barra bajo cada día muestra el tamaño de la marea: más larga es marea viva (bajamares más bajas).</p>
+    <div class="row"><button type="button" id="calToday">Ir a hoy</button></div>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="dlgSug" aria-labelledby="dlgSugT">
+  <div class="sh-head"><h2 id="dlgSugT">Sugerir un lugar</h2><button type="button" data-close aria-label="Cerrar">×</button></div>
+  <form class="sh-body" id="sugForm">
+    <label for="sNom">Nombre del lugar</label>
+    <input type="text" id="sNom" required maxlength="80" placeholder="Ej.: paso a Isla Tabón">
+    <label for="sTipo">¿Qué se puede hacer con la marea?</label>
+    <select id="sTipo">
+      <option value="paso">Cruzar a pie a una isla</option>
+      <option value="camino">Camino o playa que solo se pasa con marea baja</option>
+      <option value="orilla">Mariscar u orillar</option>
+      <option value="rampa">Bajar o varar botes</option>
+      <option value="otro">Otro</option>
+    </select>
+    <label for="sDonde">¿Dónde queda?</label>
+    <input type="text" id="sDonde" maxlength="120" placeholder="Comuna, sector o cómo llegar">
+    <div class="row"><button type="button" id="sGeo">Usar mi ubicación</button><span class="note" id="sGeoMsg"></span></div>
+    <label for="sDesc">Cuéntanos más (opcional)</label>
+    <textarea id="sDesc" maxlength="800" placeholder="Desde qué hora se puede pasar, qué tan seguro es, qué hay que saber…"></textarea>
+    <label for="sCont">Tu nombre o contacto (opcional)</label>
+    <input type="text" id="sCont" maxlength="80" placeholder="Por si necesitamos preguntarte algo">
+    <div class="row"><button type="submit" class="btnlike" style="background:var(--sea);color:#fff;border-color:var(--sea)">Enviar sugerencia</button></div>
+    <p class="note" id="sMsg" role="status" style="margin-top:10px"></p>
+  </form>
+</dialog>
+
 <script src="lugares.js"></script>
 <script type="module">
-import { predictor } from './marea-calc.js';
+import { predictor, ajustar } from './marea-calc.js';
 
 const TZ = 'America/Santiago', H = 3600e3, MIN = 60e3, DAY = 24 * H;
 const SITIO = 'https://mistaj4z.github.io/marea-nao/';
@@ -381,32 +546,16 @@ const DESCARGA = SITIO + 'descargar.html';
 const APK = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 // Ventanas de cruce en días futuros: gratis durante la prueba. Para cobrarlas más adelante, poner en false.
 const PRUEBA_GRATIS = true;
+const SUGERENCIAS = 'bajamar-sug-e510f4450bb6';   // canal ntfy donde llegan las sugerencias de lugares
+const REVISAR_DIAS = 90;                           // cada cuánto se recomienda revisar la calibración
+const DIAS_TIRA = 14;                              // días que se recorren con las flechas
 
 const $ = id => document.getElementById(id);
 const store = {
   get(k){ try { return localStorage.getItem(k); } catch { return null; } },
   set(k, v){ try { localStorage.setItem(k, v); } catch {} }
 };
-
-/* ---------- lugar ---------- */
-const LUG = self.LUGARES || [];
-let P = LUG.find(l => l.id === store.get('mareas.lugar')) || LUG[0];
-const K = k => `mareas.${k}.${P.id}`;
-// migración desde la versión anterior (un solo lugar)
-if (P.id === 'nao' && store.get('mareas.umbral') != null && store.get(K('umbral')) == null) {
-  store.set(K('umbral'), store.get('mareas.umbral'));
-  if (store.get('mareas.umbralT')) store.set(K('umbralT'), store.get('mareas.umbralT'));
-}
-const harm = predictor(P.armonicos);
-let OFF = parseFloat(store.get(K('off'))) || 0;     // desfase pronóstico − cálculo, medido en la última descarga
-let D = null, fetchErr = null, gen = 0;               // D: pronóstico { t0, v[], fetched }
-let thr = parseFloat(store.get(K('umbral')));
-if (!isFinite(thr)) thr = P.paso ? P.paso.umbral : 0;
-
-// escala vertical fija para el lugar (permite comparar días)
-let lim = 3;
-{ let m = 0; const t0 = Date.now(); for (let i = 0; i < 24 * 400; i += 1) m = Math.max(m, Math.abs(harm(t0 + i * H) + OFF)); lim = Math.max(2, Math.ceil(m + 0.3)); }
-const A = P.armonicos, VIVA = 2 * (A.M2[0] + .6 * A.S2[0]), MUERTA = 2 * (A.M2[0] - .6 * A.S2[0]);
+const TIPO = { paso: 'Paso a pie', camino: 'Camino con marea baja', orilla: 'Orilla y marisqueo', ciudad: 'Ciudad costera', punto: 'Tu punto' };
 
 /* ---------- formato y fechas ---------- */
 const fTime = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
@@ -414,8 +563,9 @@ const fKey  = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
 const fDow  = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'short' });
 const fHour = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hourCycle: 'h23' });
 const fLong = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' });
-const fLongY = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const fShort = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' });
+const fMonth = new Intl.DateTimeFormat('es-CL', { timeZone: 'UTC', month: 'long', year: 'numeric' });
+const fDate = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, day: 'numeric', month: 'long', year: 'numeric' });
 const fParts = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
 const hhmm = t => fTime.format(t);
 const keyOf = t => fKey.format(t);
@@ -431,16 +581,54 @@ function dayStart(k) {
   startCache.set(k, t); return t;
 }
 const dayEnd = k => dayStart(addDays(k, 1));
+const noon = k => dayStart(k) + 12 * H;
 const dayName = k => {
   const n = diffDays(today(), k);
   if (n === 0) return 'hoy'; if (n === 1) return 'mañana'; if (n === -1) return 'ayer';
-  return fDow.format(dayStart(k) + 12 * H).replace('.', '');
+  return fDow.format(noon(k)).replace('.', '');
 };
 const when = t => { const d = dayName(keyOf(t)); return d === 'hoy' ? hhmm(t) : `${d} ${hhmm(t)}`; };
 const fmtH = (h, d = 2) => (h < 0 ? '−' : '+') + Math.abs(h).toFixed(d).replace('.', ',') + ' m';
 const fmtCm = m => Math.round(Math.abs(m) * 100) + ' cm';
 const dur = ms => { const m = Math.max(0, Math.round(ms / MIN)), h = Math.floor(m / 60); return h ? `${h} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`; };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const km = (a, b) => { const r = Math.PI / 180, x = (b.lon - a.lon) * r * Math.cos((a.lat + b.lat) / 2 * r), y = (b.lat - a.lat) * r; return Math.hypot(x, y) * 6371; };
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+/* ---------- lugares ---------- */
+const BASE = self.LUGARES || [];
+const custom = () => { try { const c = JSON.parse(store.get('mareas.custom')); return c && c.armonicos ? c : null; } catch { return null; } };
+const places = () => { const c = custom(); return c ? [c, ...BASE] : BASE; };
+let P = null, K = null, harm = null, OFF = 0, D = null, thr = 0, lim = 3, VIVA = 9, MUERTA = 0, fetchErr = null, gen = 0;
+const extCache = new Map();
+
+function setPlace(p, boot) {
+  P = p; K = k => `mareas.${k}.${P.id}`; store.set('mareas.lugar', p.id);
+  if (P.id === 'nao' && store.get('mareas.umbral') != null && store.get(K('umbral')) == null) {     // migración v1
+    store.set(K('umbral'), store.get('mareas.umbral'));
+    if (store.get('mareas.umbralT')) store.set(K('umbralT'), store.get('mareas.umbralT'));
+  }
+  harm = predictor(P.armonicos);
+  OFF = parseFloat(store.get(K('off'))) || 0;
+  D = null; fetchErr = null;
+  try { const c = JSON.parse(store.get(K('datos'))); if (c && c.t0 + (c.v.length - 1) * H > Date.now()) D = c; } catch {}
+  thr = parseFloat(store.get(K('umbral'))); if (!isFinite(thr)) thr = P.paso ? P.paso.umbral ?? 0 : 0;
+  { let m = 0; const t0 = Date.now(); for (let i = 0; i < 24 * 400; i++) m = Math.max(m, Math.abs(harm(t0 + i * H) + OFF)); lim = Math.max(1, Math.ceil(m + 0.25)); }
+  const A = P.armonicos; VIVA = 2 * (A.M2[0] + .6 * (A.S2 || [0])[0]); MUERTA = 2 * (A.M2[0] - .6 * (A.S2 || [0])[0]);
+  gen++; extCache.clear();
+
+  $('placeName').textContent = P.nombre;
+  $('placeSub').textContent = [P.comuna !== P.nombre ? P.comuna : '', P.region].filter(Boolean).join(' · ');
+  document.title = 'Bajamar · ' + P.nombre;
+  $('t-paso').hidden = !P.paso;
+  $('tPasoLbl').textContent = P.tipo === 'paso' ? 'Paso a ' + P.nombre.replace(/^Islas? /, '') : 'Paso';
+  $('sceneCard').hidden = P.id !== 'nao';
+  $('avCard').hidden = !AVISOS();
+  $('thr').min = -lim; $('thr').max = lim; $('thr').value = thr; $('thrOut').textContent = fmtH(thr);
+  if (tab === 'paso' && !P.paso) tab = 'mareas';
+  buildScene();
+  if (!boot) { sel = today(); showTab(tab); load(); avisosUI(); sync(); }
+}
 
 /* ---------- marea: pronóstico cuando lo hay, cálculo astronómico siempre ---------- */
 const tEnd = () => D.t0 + (D.v.length - 1) * H;
@@ -453,13 +641,11 @@ function fc(ms) {
 function tide(t) {
   const c = harm(t) + OFF;
   if (!D || t < D.t0 || t > tEnd()) return c;
-  const w = Math.min(1, (t - D.t0) / (6 * H), (tEnd() - t) / (6 * H));   // transición suave en los bordes
+  const w = Math.min(1, (t - D.t0) / (6 * H), (tEnd() - t) / (6 * H));
   return c + (fc(t) - c) * w;
 }
 const isForecast = k => D && dayStart(k) >= D.t0 && dayEnd(k) <= tEnd();
-
-const extCache = new Map();
-function extremes(k) {                  // pleamares y bajamares del día
+function extremes(k) {
   const ck = gen + k; if (extCache.has(ck)) return extCache.get(ck);
   const a = dayStart(k), b = dayEnd(k), out = [];
   let p2 = tide(a - 2 * MIN), p1 = tide(a - MIN);
@@ -474,8 +660,7 @@ function extremes(k) {                  // pleamares y bajamares del día
 }
 const range = k => { const e = extremes(k); if (!e.length) return 0; return Math.max(...e.map(x => x.h)) - Math.min(...e.map(x => x.h)); };
 const kind = r => r >= VIVA ? 'viva' : r <= MUERTA ? 'muerta' : '';
-
-function crossings(a, b) {             // cruces del límite del paso entre a y b
+function crossings(a, b) {
   const out = []; let prev = tide(a) - thr;
   for (let t = a + 2 * MIN; t <= b; t += 2 * MIN) {
     const cur = tide(t) - thr;
@@ -484,7 +669,7 @@ function crossings(a, b) {             // cruces del límite del paso entre a y 
   }
   return out;
 }
-function windowsIn(a, b) {             // ventanas secas que tocan [a, b], completas
+function windowsIn(a, b) {
   const s = a - 14 * H, e = b + 14 * H, cr = crossings(s, e), out = [];
   let start = tide(s) < thr ? s : null;
   for (const c of cr) { if (c.opens) start = c.t; else if (start != null) { out.push({ a: start, b: c.t }); start = null; } }
@@ -495,9 +680,9 @@ function windowsIn(a, b) {             // ventanas secas que tocan [a, b], compl
   });
 }
 
-/* ---------- sol (para sombrear la noche) ---------- */
+/* ---------- sol ---------- */
 function sun(k) {
-  const r = Math.PI / 180, JD = (dayStart(k) + 12 * H) / DAY + 2440587.5;
+  const r = Math.PI / 180, JD = noon(k) / DAY + 2440587.5;
   const n = Math.round(JD - 2451545 + P.lon / 360), J = n - P.lon / 360;
   const M = (357.5291 + 0.98560028 * J) % 360, C = 1.9148 * Math.sin(M * r) + 0.02 * Math.sin(2 * M * r) + 0.0003 * Math.sin(3 * M * r);
   const L = (M + C + 282.9372) % 360, Jt = 2451545 + J + 0.0053 * Math.sin(M * r) - 0.0069 * Math.sin(2 * L * r);
@@ -508,60 +693,71 @@ function sun(k) {
   return { rise: ms(Jt - w), set: ms(Jt + w) };
 }
 
-/* ---------- descarga del pronóstico ---------- */
+/* ---------- pronóstico ---------- */
+const marineURL = (lat, lon, q) => `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}` +
+  `&hourly=sea_level_height_msl&timeformat=unixtime&timezone=GMT&cell_selection=sea&${q}`;
 async function load() {
+  const p = P;
   try {
-    const api = `https://marine-api.open-meteo.com/v1/marine?latitude=${P.lat}&longitude=${P.lon}` +
-                `&hourly=sea_level_height_msl&timeformat=unixtime&timezone=GMT&past_days=1&forecast_days=16`;
-    const r = await fetch(api, { cache: 'no-store' });
+    const c = p.celda || [p.lat, p.lon];
+    const r = await fetch(marineURL(c[0], c[1], 'past_days=1&forecast_days=16'), { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json(), t = j.hourly.time, v = [];
     for (const x of j.hourly.sea_level_height_msl) { if (x == null) break; v.push(x); }
     if (v.length < 24) throw new Error('sin datos de marea');
+    if (p !== P) return;
     const d = { t0: t[0] * 1000, v, fetched: Date.now() };
     store.set(K('datos'), JSON.stringify(d));
-    fetchErr = null; setData(d, true);
-  } catch (e) {
-    fetchErr = e.message || String(e);
-    foot();
-  }
+    fetchErr = null; setData(d);
+  } catch (e) { if (p === P) { fetchErr = e.message || String(e); foot(); } }
 }
-function setData(d, fresh) {
+function setData(d) {
   D = d;
-  if (fresh) {                          // mide el desfase entre pronóstico y cálculo
-    let s = 0; for (let i = 0; i < d.v.length; i++) s += d.v[i] - harm(d.t0 + i * H);
-    OFF = s / d.v.length; store.set(K('off'), OFF.toFixed(4));
-  }
+  let s = 0; for (let i = 0; i < d.v.length; i++) s += d.v[i] - harm(d.t0 + i * H);
+  OFF = s / d.v.length; store.set(K('off'), OFF.toFixed(4));
   gen++; extCache.clear(); buildScene(); renderAll();
 }
 
 /* ---------- pestañas ---------- */
 const TABS = ['mareas', 'paso', 'mas'];
-let tab = store.get('mareas.tab'); if (!TABS.includes(tab) || (tab === 'paso' && !P.paso)) tab = 'mareas';
+let tab = store.get('mareas.tab'); if (!TABS.includes(tab)) tab = 'mareas';
 function showTab(t) {
+  if (t === 'paso' && !P.paso) t = 'mareas';
   tab = t; store.set('mareas.tab', t);
   for (const x of TABS) { $('p-' + x).hidden = x !== t; $('t-' + x).setAttribute('aria-selected', x === t); }
   scrollTo(0, 0); renderAll();
 }
 for (const x of TABS) $('t-' + x).addEventListener('click', () => showTab(x));
-if (!P.paso) $('t-paso').hidden = true; else $('tPasoLbl').textContent = 'Paso a ' + P.nombre.replace(/^Isla /, '');
+
+/* ---------- diálogos ---------- */
+function openDlg(id) { const d = $(id); if (!d.open) d.showModal(); }
+for (const d of document.querySelectorAll('dialog.sheet')) {
+  d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
+}
 
 /* ---------- día elegido ---------- */
 let sel = today();
 function pick(k) { sel = k; renderAll(); }
+function go(step) {          // las flechas solo recorren los próximos días (los de la tira)
+  const t = today(), n = diffDays(t, sel);
+  if (n < 0 || n > DIAS_TIRA - 1) return pick(t);
+  pick(addDays(t, Math.max(0, Math.min(DIAS_TIRA - 1, n + step))));
+}
 function daybar() {
   const t = today(), n = diffDays(t, sel), r = range(sel), kd = kind(r);
-  let s = `<div class="daynav"><button type="button" data-go="-1" aria-label="Día anterior">‹</button>` +
-    `<div class="t"><b>${esc(fLong.format(dayStart(sel) + 12 * H))}</b><small>${n === 0 ? 'hoy' : n === 1 ? 'mañana' : n > 0 ? `en ${n} días` : `hace ${-n} días`}` +
+  const inStrip = n >= 0 && n < DIAS_TIRA;
+  let s = `<div class="daynav"><button type="button" data-go="-1" aria-label="Día anterior" ${inStrip && n === 0 ? 'disabled' : ''}>‹</button>` +
+    `<div class="t"><b>${esc(fLong.format(noon(sel)))}${n < 0 || n > 300 ? ' de ' + sel.slice(0, 4) : ''}</b><small>${n === 0 ? 'hoy' : n === 1 ? 'mañana' : n > 0 ? `en ${n} días` : `hace ${-n} días`}` +
     ` · rango ${r.toFixed(1).replace('.', ',')} m${kd ? `<span class="tag ${kd}">marea ${kd}</span>` : ''}</small></div>` +
-    `<button type="button" data-go="1" aria-label="Día siguiente">›</button></div><div class="strip">`;
-  for (let i = 0; i < 14; i++) {
+    `<button type="button" data-go="1" aria-label="Día siguiente" ${inStrip && n === DIAS_TIRA - 1 ? 'disabled' : ''}>›</button></div><div class="strip">`;
+  for (let i = 0; i < DIAS_TIRA; i++) {
     const k = addDays(t, i), rr = range(k);
-    s += `<button type="button" data-k="${k}" ${k === sel ? 'aria-current="date"' : ''} aria-label="${esc(fLong.format(dayStart(k) + 12 * H))}">` +
-      `<small>${i === 0 ? 'hoy' : esc(fDow.format(dayStart(k) + 12 * H).replace('.', ''))}</small><b>${+k.slice(8)}</b>` +
+    s += `<button type="button" data-k="${k}" ${k === sel ? 'aria-current="date"' : ''} aria-label="${esc(fLong.format(noon(k)))}">` +
+      `<small>${i === 0 ? 'hoy' : esc(fDow.format(noon(k)).replace('.', ''))}</small><b>${+k.slice(8)}</b>` +
       `<i style="--r:${Math.round(Math.min(1, rr / (VIVA * 1.08)) * 100)}%"></i></button>`;
   }
-  s += `<label class="btnlike cal" title="Elegir otra fecha">Otra fecha<input type="date" value="${sel}" aria-label="Elegir fecha"></label></div>`;
+  if (!inStrip) s += `<button type="button" data-k="${sel}" aria-current="date"><small>${esc(fShort.format(noon(sel)).replace('.', ''))}</small><b>${+sel.slice(8)}</b><i style="--r:${Math.round(Math.min(1, r / (VIVA * 1.08)) * 100)}%"></i></button>`;
+  s += `<button type="button" class="cal" data-cal>Otra fecha</button></div>`;
   for (const el of document.querySelectorAll('.daybar')) {
     if (el.closest('[hidden]')) continue;
     const sc = el.querySelector('.strip')?.scrollLeft || 0;
@@ -573,13 +769,32 @@ function daybar() {
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('.daybar button');
-  if (!b) return;
-  if (b.dataset.go) pick(addDays(sel, +b.dataset.go));
+  if (!b || b.disabled) return;
+  if (b.dataset.go) go(+b.dataset.go);
   else if (b.dataset.k) pick(b.dataset.k);
+  else if ('cal' in b.dataset) openCal();
 });
-document.addEventListener('change', e => {
-  if (e.target.matches('.daybar input[type=date]') && /^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) pick(e.target.value);
-});
+
+/* ---------- calendario propio ---------- */
+let calY, calM;
+function openCal() { calY = +sel.slice(0, 4); calM = +sel.slice(5, 7) - 1; drawCal(); openDlg('dlgCal'); }
+function drawCal() {
+  $('calTitle').textContent = fMonth.format(Date.UTC(calY, calM, 15));
+  const first = new Date(Date.UTC(calY, calM, 1)), lead = (first.getUTCDay() + 6) % 7, t = today();
+  let s = ['lu', 'ma', 'mi', 'ju', 'vi', 'sá', 'do'].map(d => `<div class="wd">${d}</div>`).join('');
+  for (let i = 0; i < 42; i++) {
+    const k = new Date(Date.UTC(calY, calM, 1 - lead + i)).toISOString().slice(0, 10), out = +k.slice(5, 7) - 1 !== calM;
+    if (i >= 35 && out && +k.slice(8) < 8 && i % 7 === 0) break;
+    const r = range(k);
+    s += `<button type="button" data-k="${k}" class="${out ? 'out' : ''}${k === t ? ' today' : ''}" ${k === sel ? 'aria-current="date"' : ''} aria-label="${esc(fLong.format(noon(k)))}">` +
+      `${+k.slice(8)}<i style="--r:${Math.round(Math.min(1, r / (VIVA * 1.08)) * 100)}%"></i></button>`;
+  }
+  $('calGrid').innerHTML = s;
+}
+$('calPrev').addEventListener('click', () => { if (--calM < 0) { calM = 11; calY--; } drawCal(); });
+$('calNext').addEventListener('click', () => { if (++calM > 11) { calM = 0; calY++; } drawCal(); });
+$('calToday').addEventListener('click', () => { $('dlgCal').close(); pick(today()); });
+$('calGrid').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; $('dlgCal').close(); pick(b.dataset.k); });
 
 /* ---------- gráfico del día ---------- */
 const CH = {};
@@ -591,16 +806,17 @@ function chart(id, paso) {
   el.setAttribute('viewBox', `0 0 ${W} ${Hh}`); el.setAttribute('width', W); el.setAttribute('height', Hh);
   let s = '';
   const su = sun(sel);
-  if (su) s += `<rect x="${L}" y="${T}" width="${(x(su.rise) - L).toFixed(1)}" height="${ph}" style="fill:var(--night)"/>` +
-               `<rect x="${x(su.set).toFixed(1)}" y="${T}" width="${(L + pw - x(su.set)).toFixed(1)}" height="${ph}" style="fill:var(--night)"/>`;
+  if (su) s += `<rect x="${L}" y="${T}" width="${Math.max(0, x(su.rise) - L).toFixed(1)}" height="${ph}" style="fill:var(--night)"/>` +
+               `<rect x="${x(su.set).toFixed(1)}" y="${T}" width="${Math.max(0, L + pw - x(su.set)).toFixed(1)}" height="${ph}" style="fill:var(--night)"/>`;
   if (paso) for (const w of windowsIn(a, b)) {
     const p = x(Math.max(a, w.a)), q = x(Math.min(b, w.b));
     s += `<rect x="${p.toFixed(1)}" y="${T}" width="${(q - p).toFixed(1)}" height="${ph}" style="fill:var(--open)" opacity=".17"/>`;
   }
-  for (let m = -lim; m <= lim; m++) {
+  const stepM = lim > 4 ? 2 : lim > 1 ? 1 : .5;
+  for (let m = -lim; m <= lim + 1e-9; m += stepM / (stepM < 1 ? 1 : 1)) {
     const yy = y(m).toFixed(1);
-    s += `<line x1="${L}" x2="${L + pw}" y1="${yy}" y2="${yy}" style="stroke:var(--grid)" stroke-width="${m ? 1 : 1.6}"/>`;
-    if (m % (lim > 4 ? 2 : 1) === 0) s += `<text x="${L - 7}" y="${+yy + 4.5}" text-anchor="end" font-size="13" style="fill:var(--muted)">${m > 0 ? '+' : m < 0 ? '−' : ''}${Math.abs(m)}</text>`;
+    s += `<line x1="${L}" x2="${L + pw}" y1="${yy}" y2="${yy}" style="stroke:var(--grid)" stroke-width="${Math.abs(m) < 1e-9 ? 1.6 : 1}"/>` +
+         `<text x="${L - 7}" y="${+yy + 4.5}" text-anchor="end" font-size="13" style="fill:var(--muted)">${m > 0 ? '+' : m < 0 ? '−' : ''}${String(Math.abs(m)).replace('.', ',')}</text>`;
   }
   const every = W >= 640 ? 2 : 3;
   for (let t = a; t <= b + 1; t += H) {
@@ -613,10 +829,7 @@ function chart(id, paso) {
   for (let t = a; t <= b; t += 6 * MIN) d += `${d ? 'L' : 'M'}${x(t).toFixed(1)} ${y(tide(t)).toFixed(1)}`;
   s += `<path d="${d}L${L + pw} ${T + ph}L${L} ${T + ph}Z" style="fill:var(--sea)" opacity=".13"/>` +
        `<path d="${d}" fill="none" style="stroke:var(--sea)" stroke-width="3" stroke-linejoin="round"/>`;
-  if (paso) {
-    const yt = y(thr).toFixed(1);
-    s += `<line x1="${L}" x2="${L + pw}" y1="${yt}" y2="${yt}" style="stroke:var(--amber)" stroke-width="2" stroke-dasharray="7 6"/>`;
-  }
+  if (paso) { const yt = y(thr).toFixed(1); s += `<line x1="${L}" x2="${L + pw}" y1="${yt}" y2="${yt}" style="stroke:var(--amber)" stroke-width="2" stroke-dasharray="7 6"/>`; }
   for (const e of extremes(sel)) {
     const xx = x(e.t), yy = y(e.h), anc = xx < L + 40 ? 'start' : xx > L + pw - 40 ? 'end' : 'middle';
     const ty = e.high ? yy - 12 : yy + 22;
@@ -649,7 +862,7 @@ function probe(ev) {
   const [ln, ci] = g.children;
   ln.setAttribute('x1', px); ln.setAttribute('x2', px); ci.setAttribute('cx', px); ci.setAttribute('cy', c.y(h));
   let extra = Math.abs(rate) < .06 ? 'casi quieta' : rate > 0 ? '↑ subiendo' : '↓ bajando';
-  if (id === 'chP') extra = h < thr ? `paso seco` : `${fmtCm(h - thr)} sobre el paso`;
+  if (id === 'chP') extra = h < thr ? 'paso seco' : `${fmtCm(h - thr)} sobre el paso`;
   $(id === 'chM' ? 'roM' : 'roP').innerHTML = `<span><b>${hhmm(t)}</b> · ${extra}</span><span><b>${fmtH(h)}</b></span>`;
 }
 for (const id of ['chM', 'chP']) {
@@ -658,6 +871,17 @@ for (const id of ['chM', 'chP']) {
   el.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' || e.buttons) probe(e); });
   el.addEventListener('pointerleave', () => { const g = el.querySelector('.probe'); if (g) g.setAttribute('visibility', 'hidden'); readoutIdle(id); });
 }
+
+/* ---------- calibración ---------- */
+const localT = () => +store.get(K('umbralT')) || 0;
+function calib() {
+  if (!P.paso) return null;
+  const dataT = P.paso.calibrado ? Date.parse(P.paso.calibrado + 'T12:00:00Z') : 0, last = Math.max(localT(), dataT);
+  if (!last) return { estado: 'falta' };
+  const dias = (Date.now() - last) / DAY;
+  return { estado: dias > REVISAR_DIAS ? 'revisar' : 'ok', last, dias };
+}
+const calChip = () => { const c = calib(); return !c ? '' : c.estado === 'falta' ? '<span class="chip warn">Falta calibrar</span>' : c.estado === 'revisar' ? '<span class="chip warn">Revisar calibración</span>' : '<span class="chip">Calibrado</span>'; };
 
 /* ---------- pestaña Mareas ---------- */
 function renderMareas(now) {
@@ -669,14 +893,25 @@ function renderMareas(now) {
   for (let i = 0; i < 3 && !nx; i++) nx = extremes(addDays(today(), i)).find(e => e.t > now);
   $('nNext').innerHTML = nx ? `${nx.high ? 'Próxima pleamar' : 'Próxima bajamar'}<b>${esc(when(nx.t))} · ${fmtH(nx.h, 1)}</b>en ${dur(nx.t - now)}` : '';
 
+  const inf = $('placeInfo');
+  if (P.tipo === 'ciudad') inf.hidden = true;
+  else {
+    inf.hidden = false;
+    let s = `<div class="row" style="margin:0;gap:6px"><span class="chip">${esc(TIPO[P.tipo] || P.tipo)}</span>${calChip()}</div>`;
+    if (P.nota) s += `<p>${esc(P.nota)}</p>`;
+    if (P.tipo === 'punto') s += `<p>Marea calculada para tu punto con un año de datos del modelo oceánico${P.dist ? ` (celda a ${P.dist.toFixed(1).replace('.', ',')} km)` : ''}.</p>`;
+    if (P.paso) s += `<div class="row"><button type="button" id="goPaso">Ver horarios del paso</button></div>`;
+    inf.innerHTML = s;
+    $('goPaso')?.addEventListener('click', () => showTab('paso'));
+  }
+
   chart('chM', false); readoutIdle('chM');
   $('srcM').innerHTML = `<span>${isForecast(sel) ? 'Pronóstico oceánico (Open-Meteo)' : 'Cálculo astronómico · ±3 min, ±5 cm'}</span><span>Zona sombreada: noche</span>`;
-
-  $('weekFrom').textContent = 'desde ' + (diffDays(today(), sel) === 0 ? 'hoy' : fShort.format(dayStart(sel) + 12 * H));
+  $('weekFrom').textContent = 'desde ' + (diffDays(today(), sel) === 0 ? 'hoy' : fShort.format(noon(sel)));
   let s = '';
   for (let i = 0; i < 7; i++) {
     const k = addDays(sel, i), kd = kind(range(k));
-    s += `<li data-k="${k}" ${i === 0 ? 'aria-current="date"' : ''}><div class="d">${esc(dayName(k))}<small>${esc(fShort.format(dayStart(k) + 12 * H))}${kd ? ' · ' + kd : ''}</small></div><div class="x">` +
+    s += `<li data-k="${k}" ${i === 0 ? 'aria-current="date"' : ''}><div class="d">${esc(dayName(k))}<small>${esc(fShort.format(noon(k)))}${kd ? ' · ' + kd : ''}</small></div><div class="x">` +
       extremes(k).map(e => `<span><b class="${e.high ? 'up' : 'dn'}">${e.high ? '▲' : '▼'}</b> ${hhmm(e.t)}<small>${fmtH(e.h, 1)}</small></span>`).join('') + '</div></li>';
   }
   $('week').innerHTML = s;
@@ -686,14 +921,16 @@ $('week').addEventListener('click', e => {
   pick(li.dataset.k); $('chM').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
-/* ---------- pestaña Paso: escena ---------- */
-const VH = 300, Y0 = 205, ppm = () => 72 / lim, yOf = h => Y0 - h * ppm();
+/* ---------- pestaña Paso: escena de Isla Nao ---------- */
+// La foto (splash/nao.jpg) se hizo con el paso a esta altura: el agua se dibuja relativa al paso.
+// SCN.y: altura (px) de la cresta del banco de arena en la foto; ppm: píxeles por metro de marea.
+const SCN = { y: 219, ppm: 24 };
+const VH = 300, ppm = SCN.ppm, yOf = h => SCN.y - (h - thr) * ppm;
 const sm = (a, b, x) => { const u = Math.max(0, Math.min(1, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
 const mix = (a, b, u) => a + (b - a) * u;
-// Perfil del terreno en px. Horizontal ≈ 0,6 px por metro (medidas de OpenStreetMap):
-// costa de Rolecha | paso ≈ 600 m entre líneas de pleamar | isla ≈ 450 m de ancho y ≈ 30 m de alto.
+// Perfil del terreno (respaldo si la foto no carga). Horizontal ≈ 0,6 px por metro (OpenStreetMap).
 function prof(x) {
-  const hi = yOf(lim + .35), t = yOf(thr), top = hi - 56;
+  const hi = SCN.y - 98, t = SCN.y, top = hi - 56;
   if (x < 60)  return mix(hi - 38, hi, sm(26, 60, x));
   if (x < 175) return mix(hi, t, sm(60, 175, x));
   if (x < 335) return t - 1.5 * Math.sin((x - 175) / 160 * Math.PI * 3) ** 2;
@@ -701,48 +938,44 @@ function prof(x) {
   if (x < 475) return mix(hi, top, sm(420, 475, x));
   if (x < 625) return top - 5 * Math.sin((x - 475) / 150 * Math.PI);
   if (x < 690) return mix(top, hi, sm(625, 690, x));
-  return mix(hi, VH + 30, sm(690, 736, x));
+  return mix(hi, VH + 30, sm(690, 708, x));
 }
 function buildScene() {
-  if (!P.paso) return;
+  if (P.id !== 'nao') return;
   let d = `M0 ${VH}`;
   for (let x = 0; x <= 800; x += 4) d += `L${x} ${prof(x).toFixed(1)}`;
   $('land').setAttribute('d', d + `L800 ${VH}Z`);
-  const hi = yOf(lim + .35), y1 = hi - 14;
-  $('gLand').setAttribute('y1', y1);
-  $('ls1').setAttribute('offset', (20 / (VH - y1)).toFixed(3));
-  const tree = (x, s) => { const y = prof(x) + 1; return `<rect x="${x - 1}" y="${(y - 8 * s).toFixed(1)}" width="2" height="${(8 * s).toFixed(1)}" fill="#5a4632"/>` +
-    `<path d="M${x} ${(y - 46 * s).toFixed(1)}l${13 * s} ${24 * s}h-${7 * s}l${10 * s} ${18 * s}h-${32 * s}l${10 * s}-${18 * s}h-${7 * s}z" fill="#2f5d45"/>`; };
   const ya = prof(20);
-  $('deco').innerHTML = tree(6, .5) + tree(38, .55) + tree(47, .45) +
-    `<rect x="14" y="${ya - 7}" width="13" height="8" fill="#f4ead6"/><path d="M12 ${ya - 7}l8.5-6 8.5 6z" fill="#a3442f"/>` +
-    `<rect x="19" y="${ya - 4}" width="3" height="5" fill="#6b4a36"/>` +
-    [[484, .42], [498, .52], [514, .6], [531, .5], [547, .62], [566, .55], [583, .6], [599, .5], [614, .58], [630, .45], [644, .4]].map(a => tree(a[0], a[1])).join('');
   $('lblA').textContent = P.paso.desde; $('lblB').textContent = P.nombre;
-  $('lblA').setAttribute('x', 6);   $('lblA').setAttribute('y', ya - 40);
-  $('lblB').setAttribute('x', 556); $('lblB').setAttribute('y', prof(550) - 38);
-  const t = yOf(thr);
-  let s = `<rect x="734" y="0" width="66" height="${VH}" fill="rgba(8,28,40,.45)"/>`;
+  $('lblA').setAttribute('x', 8);   $('lblA').setAttribute('y', ya - 44);
+  $('lblB').setAttribute('x', 556); $('lblB').setAttribute('y', prof(550) - 40);
+  // regla de mareas: números grandes, cada 1 m, con el paso marcado
+  const SX = 708, t = yOf(thr);
+  let s = `<rect x="${SX}" y="0" width="${800 - SX}" height="${VH}" fill="rgba(6,30,30,.55)"/>`;
   for (let k = -lim * 2; k <= lim * 2; k++) {
-    const h = k / 2, y = yOf(h).toFixed(1), big = k % 2 === 0;
-    s += `<line x1="734" x2="${big ? 750 : 743}" y1="${y}" y2="${y}" stroke="#fff" stroke-width="${big ? 2 : 1}" opacity="${big ? .95 : .6}"/>`;
-    if (big) s += `<text x="793" y="${+y + 4.5}" text-anchor="end" font-size="13" font-weight="600" fill="#fff">${h > 0 ? '+' : h < 0 ? '−' : ''}${Math.abs(h)}</text>`;
+    const h = k / 2, y = yOf(h); if (y < 6 || y > VH - 4) continue;
+    const big = k % 2 === 0;
+    s += `<line x1="${SX}" x2="${SX + (big ? 22 : 12)}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#fff" stroke-width="${big ? 2.5 : 1.4}" opacity="${big ? 1 : .65}"/>`;
+    if (big) s += `<text x="795" y="${(y + 8.5).toFixed(1)}" text-anchor="end" font-size="25" font-weight="700" fill="#fff">${h > 0 ? '+' : h < 0 ? '−' : ''}${Math.abs(h)}</text>`;
   }
-  s += `<line x1="734" x2="800" y1="${t.toFixed(1)}" y2="${t.toFixed(1)}" stroke="#f2b632" stroke-width="2.5"/>` +
-       `<text x="754" y="${(t - 4).toFixed(1)}" font-size="10" font-weight="700" fill="#f7c95a">PASO</text>` +
-       `<path id="ptr" d="M0 0l-11-7v14z" fill="#fff"/>`;
+  s += `<line x1="${SX - 4}" x2="800" y1="${t.toFixed(1)}" y2="${t.toFixed(1)}" stroke="#f2b632" stroke-width="3"/>` +
+       `<text x="${SX - 8}" y="${(t + 5).toFixed(1)}" text-anchor="end" font-size="14" font-weight="800" fill="#f7c95a" stroke="rgba(10,35,48,.7)" stroke-width="3" paint-order="stroke">LÍMITE DEL PASO</text>` +
+       `<path id="ptr" d="M0 0l-14-9v18z" fill="#fff"/>`;
   $('staff').innerHTML = s;
 }
 let yWater = 250; const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function drawWater(ts) {
-  if (tab === 'paso' || still) {
+  if ((tab === 'paso' && P && P.id === 'nao') || still) {
     const p = still ? 0 : ts / 1500; let d = '';
-    for (let x = 0; x <= 800; x += 16)
-      d += `${x ? 'L' : 'M'}${x} ${(yWater + 1.6 * Math.sin(x / 46 + p) + .8 * Math.sin(x / 19 - p * 1.4)).toFixed(1)}`;
-    $('surf').setAttribute('d', d); $('water').setAttribute('d', d + `L800 ${VH}L0 ${VH}Z`);
+    for (let x = 0; x <= 708; x += 12)
+      d += `${x ? 'L' : 'M'}${x} ${(yWater + 1.5 * Math.sin(x / 46 + p) + .7 * Math.sin(x / 19 - p * 1.4)).toFixed(1)}`;
+    $('surf').setAttribute('d', d);
+    const area = d + `L708 ${VH}L0 ${VH}Z`;
+    $('water').setAttribute('d', area); $('waterTex').setAttribute('d', area);
   }
   if (!still) requestAnimationFrame(drawWater);
 }
+$('photo').addEventListener('error', () => $('photo').remove());
 
 /* ---------- pestaña Paso ---------- */
 function renderPaso(now) {
@@ -762,15 +995,29 @@ function renderPaso(now) {
     $('title').textContent = 'No cruces';
     $('sub').innerHTML = next ? `Se despeja a las <b>${esc(when(next.t))}</b> · en <b>${dur(next.t - now)}</b>` : 'La marea no baja lo suficiente en los próximos días.';
   }
-  yWater = yOf(h); if (still) drawWater(0);
-  const bl = $('barLabel');
-  if (open) { bl.textContent = `paso seco · ${fmtCm(thr - h)} sobre el agua`; bl.setAttribute('y', yOf(thr) - 12); }
-  else      { bl.textContent = `${fmtCm(h - thr)} de agua sobre el paso`;     bl.setAttribute('y', yWater - 10); }
-  const ptr = document.getElementById('ptr'); if (ptr) ptr.setAttribute('transform', `translate(732 ${yWater.toFixed(1)})`);
+
+  const c = calib(), bn = $('calBanner');
+  if (c.estado === 'falta') {
+    bn.hidden = false;
+    bn.innerHTML = `<span><b>Límite aproximado: falta calibrar en terreno.</b> Se estimó para que el paso quede seco el mismo porcentaje del tiempo que en Isla Nao. Los horarios pueden variar; si vas, calíbralo abajo.</span>`;
+  } else if (c.estado === 'revisar') {
+    bn.hidden = false;
+    bn.innerHTML = `<span><b>Revisa la calibración.</b> La última fue el ${esc(fDate.format(c.last))} (hace ${Math.round(c.dias / 30)} meses). Los bancos de arena cambian: comprueba si el paso se sigue despejando a ${esc(fmtH(thr))}.</span><button type="button" id="calOk">Sigue calzando</button>`;
+    $('calOk').addEventListener('click', () => { store.set(K('umbralT'), Date.now()); pushCfg(); renderAll(); });
+  } else bn.hidden = true;
+  $('thrState').innerHTML = c.estado === 'falta' ? '<span class="chip warn">aproximado</span>' : `calibrado el ${esc(fShort.format(c.last))}`;
+
+  if (P.id === 'nao') {
+    yWater = yOf(h); if (still) drawWater(0);
+    const bl = $('barLabel');
+    if (open) { bl.textContent = `paso seco · ${fmtCm(thr - h)} sobre el agua`; bl.setAttribute('y', yOf(thr) - 14); }
+    else      { bl.textContent = `${fmtCm(h - thr)} de agua sobre el paso`;     bl.setAttribute('y', Math.max(22, yWater - 12)); }
+    const ptr = document.getElementById('ptr'); if (ptr) ptr.setAttribute('transform', `translate(706 ${yWater.toFixed(1)})`);
+  }
 
   chart('chP', true); readoutIdle('chP');
   const n = diffDays(today(), sel), locked = !PRUEBA_GRATIS && n > 1;
-  $('winDay').innerHTML = esc(n === 0 ? 'hoy' : n === 1 ? 'mañana' : fShort.format(dayStart(sel) + 12 * H)) + (n > 1 && PRUEBA_GRATIS ? ' <span class="trial">gratis en la prueba</span>' : '');
+  $('winDay').innerHTML = esc(n === 0 ? 'hoy' : n === 1 ? 'mañana' : fShort.format(noon(sel))) + (n > 1 && PRUEBA_GRATIS ? ' <span class="trial">gratis en la prueba</span>' : '');
   if (locked) { $('wins').innerHTML = `<li class="empty">Las ventanas de días futuros son parte de la versión completa.</li>`; return; }
   const a = dayStart(sel), b = dayEnd(sel), ws = windowsIn(a, b);
   $('wins').innerHTML = ws.map(w => {
@@ -790,6 +1037,7 @@ function sky(now) {
   }
 }
 function renderAll() {
+  if (!P) return;
   const now = Date.now();
   $('clock').textContent = `${innerWidth < 520 ? fShort.format(now) : fLong.format(now)} · ${hhmm(now)}`;
   sky(now);
@@ -808,7 +1056,6 @@ function foot() {
 }
 
 /* ---------- límite de cruce ---------- */
-const localT = () => +store.get(K('umbralT')) || 0;
 function setThr(v, remoteT) {
   thr = Math.round(v * 100) / 100;
   store.set(K('umbral'), thr); store.set(K('umbralT'), remoteT || Date.now());
@@ -817,14 +1064,13 @@ function setThr(v, remoteT) {
   if (!remoteT) pushCfg();
   avisosUI();
 }
-$('thr').min = -lim; $('thr').max = lim; $('thr').value = thr; $('thrOut').textContent = fmtH(thr);
 $('thr').addEventListener('input', e => setThr(+e.target.value));
 $('calib').addEventListener('click', () => setThr(tide(Date.now())));
 
 /* ---------- avisos (ntfy) y sincronización del límite ---------- */
 const NTFY = 'https://ntfy.sh/';
 const ESTADO = 'https://raw.githubusercontent.com/MistaJ4Z/marea-nao/estado/estado.json';
-const AVISOS = P.id === 'nao';            // el robot de avisos solo cubre Isla Nao por ahora
+const AVISOS = () => P && P.id === 'nao';       // el robot de avisos solo cubre Isla Nao por ahora
 let canal = store.get('mareas.canal'), estado = null, cfgTimer = null;
 try {
   const q = new URLSearchParams(location.search).get('canal');
@@ -832,12 +1078,12 @@ try {
 } catch {}
 const publish = o => fetch(NTFY, { method: 'POST', body: JSON.stringify(o) });
 function pushCfg() {
-  if (!canal || !AVISOS) return;
+  if (!canal || !AVISOS()) return;
   clearTimeout(cfgTimer);
   cfgTimer = setTimeout(() => { publish({ topic: canal + '-cfg', message: JSON.stringify({ umbral: thr, t: localT() }) }).catch(() => {}); }, 1500);
 }
 async function sync() {
-  if (!canal || !AVISOS) return;
+  if (!canal || !AVISOS()) return;
   let best = null;
   try {
     const r = await fetch(ESTADO, { cache: 'no-store' });
@@ -850,6 +1096,7 @@ async function sync() {
         if (typeof c.umbral === 'number' && (!best || c.t > best.t)) best = c; } catch {}
     }
   } catch {}
+  if (!AVISOS()) return;
   if (best && best.t > localT()) setThr(best.umbral, best.t);
   else if (localT() && (!best || localT() > best.t)) pushCfg();
   avisosUI();
@@ -886,23 +1133,119 @@ $('avTest').addEventListener('click', async () => {
   } catch { $('avMsg').textContent = 'Sin conexión.'; }
 });
 
+/* ---------- elegir lugar ---------- */
+let here = null;      // { lat, lon } del teléfono
+function placeList() {
+  const q = norm($('q').value.trim()), list = places();
+  const hit = p => !q || norm(`${p.nombre} ${p.comuna} ${p.zona || ''} ${p.region} ${TIPO[p.tipo] || ''}`).includes(q);
+  let s = '';
+  const item = p => {
+    const c = p.paso ? (() => { const dataT = p.paso.calibrado ? 1 : 0, lt = +store.get(`mareas.umbralT.${p.id}`) || 0; return dataT || lt ? '' : '<span class="chip warn">Falta calibrar</span>'; })() : '';
+    const d = here ? km(here, p) : null;
+    return `<button type="button" class="pl" data-id="${esc(p.id)}" aria-current="${p.id === P.id}"><span><b>${esc(p.nombre)}</b><small>${esc(p.comuna && p.comuna !== p.nombre ? p.comuna + ' · ' : '')}${esc(p.zona ? p.zona + ' · ' : '')}${esc(TIPO[p.tipo] || '')}</small></span>` +
+      `<span class="tags">${d != null ? `<span class="km">${d < 10 ? d.toFixed(1).replace('.', ',') : Math.round(d)} km</span>` : ''}${c}</span></button>`;
+  };
+  if (here && !q) {
+    const near = list.map(p => [km(here, p), p]).sort((a, b) => a[0] - b[0]).slice(0, 6);
+    s += `<h3>Más cercanos</h3>` + near.map(([, p]) => item(p)).join('');
+  }
+  const regs = [...new Set(list.map(p => p.region))];
+  for (const r of regs) {
+    const ps = list.filter(p => p.region === r && hit(p));
+    if (!ps.length) continue;
+    ps.sort((a, b) => (a.tipo === 'ciudad') - (b.tipo === 'ciudad'));
+    s += `<h3>${esc(r)}</h3>` + ps.map(item).join('');
+  }
+  $('placeList').innerHTML = s || `<p class="note" style="margin-top:14px">No hay lugares con ese nombre. Puedes usar tu ubicación o sugerirlo.</p>`;
+}
+$('placeBtn').addEventListener('click', () => { $('q').value = ''; placeList(); openDlg('dlgPlace'); });
+$('q').addEventListener('input', placeList);
+$('placeList').addEventListener('click', e => {
+  const b = e.target.closest('.pl'); if (!b) return;
+  const p = places().find(x => x.id === b.dataset.id); if (!p) return;
+  $('dlgPlace').close(); if (p.id !== P.id) setPlace(p);
+});
+function locate() {
+  return new Promise((ok, no) => {
+    if (!navigator.geolocation) return no(new Error('Este dispositivo no entrega ubicación.'));
+    navigator.geolocation.getCurrentPosition(
+      p => ok({ lat: p.coords.latitude, lon: p.coords.longitude }),
+      e => no(new Error(e.code === 1 ? 'No diste permiso de ubicación.' : 'No se pudo obtener la ubicación.')),
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10 * 60e3 });
+  });
+}
+$('geoBtn').addEventListener('click', async () => {
+  const out = $('geoOut'); out.innerHTML = '<p class="note" style="margin-top:10px">Buscando tu ubicación…</p>';
+  try {
+    here = await locate();
+    const near = BASE.map(p => [km(here, p), p]).sort((a, b) => a[0] - b[0])[0];
+    let s = `<div class="near">Lo más cercano es <b>${esc(near[1].nombre)}</b>, a ${Math.round(near[0])} km.`;
+    if (near[0] > 8) s += ` Como estás lejos de los lugares de la lista, puedo calcular la marea en tu punto exacto (descarga un año de datos, unos segundos).<br><button type="button" id="fitHere">Calcular en mi punto</button>`;
+    out.innerHTML = s + '</div>';
+    $('fitHere')?.addEventListener('click', () => fitHere(near[1]));
+    placeList();
+  } catch (e) { out.innerHTML = `<p class="note err" style="margin-top:10px">${esc(e.message)}</p>`; }
+});
+async function fitHere(near) {
+  const out = $('geoOut'); out.innerHTML = '<div class="near">Descargando un año de mareas para tu punto…</div>';
+  try {
+    const hoy = Date.now() - Date.now() % DAY, ymd = t => new Date(t).toISOString().slice(0, 10);
+    const r = await fetch(marineURL(here.lat.toFixed(4), here.lon.toFixed(4), `start_date=${ymd(hoy - 400 * DAY)}&end_date=${ymd(hoy - DAY)}`));
+    const j = await r.json(); if (j.error) throw new Error(j.reason);
+    const datos = []; j.hourly.time.forEach((t, i) => { const v = j.hourly.sea_level_height_msl[i]; if (v != null) datos.push([t * 1000, v]); });
+    if (datos.length < 24 * 200) throw new Error('El modelo oceánico no tiene datos de mar en este punto. Prueba desde la costa o elige el lugar más cercano.');
+    out.innerHTML = '<div class="near">Calculando las componentes de la marea…</div>';
+    await new Promise(r => setTimeout(r, 30));
+    const arm = ajustar(datos), celda = [j.latitude, j.longitude];
+    const p = { id: 'punto', nombre: 'Mi punto', comuna: `cerca de ${near.nombre}`, region: near.region, lat: here.lat, lon: here.lon, tipo: 'punto',
+      armonicos: arm, ajustado: ymd(hoy), celda, dist: km(here, { lat: celda[0], lon: celda[1] }) };
+    store.set('mareas.custom', JSON.stringify(p));
+    store.set('mareas.off.punto', ''); store.set('mareas.datos.punto', '');
+    $('dlgPlace').close(); setPlace(p);
+  } catch (e) { out.innerHTML = `<div class="near err">${esc(e.message || e)}</div>`; }
+}
+
+/* ---------- sugerir un lugar ---------- */
+let sugPos = null;
+for (const b of document.querySelectorAll('.sugOpen')) b.addEventListener('click', () => {
+  $('dlgPlace').close(); $('sMsg').textContent = ''; openDlg('dlgSug');
+});
+$('sGeo').addEventListener('click', async () => {
+  $('sGeoMsg').textContent = 'Buscando…';
+  try { sugPos = await locate(); $('sGeoMsg').textContent = `✓ ${sugPos.lat.toFixed(4)}, ${sugPos.lon.toFixed(4)}`; }
+  catch (e) { sugPos = null; $('sGeoMsg').textContent = e.message; }
+});
+$('sugForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const nom = $('sNom').value.trim(), donde = $('sDonde').value.trim();
+  if (!donde && !sugPos) { $('sDonde').setCustomValidity('Indica dónde queda o usa tu ubicación'); $('sDonde').reportValidity(); return; }
+  const tipo = $('sTipo').selectedOptions[0].textContent;
+  const lines = [`Tipo: ${tipo}`, donde && `Dónde: ${donde}`, sugPos && `Ubicación: ${sugPos.lat.toFixed(5)}, ${sugPos.lon.toFixed(5)}`,
+    $('sDesc').value.trim() && `Detalle: ${$('sDesc').value.trim()}`, $('sCont').value.trim() && `Contacto: ${$('sCont').value.trim()}`,
+    `Viendo: ${P.nombre}`].filter(Boolean);
+  const body = { topic: SUGERENCIAS, title: `Sugerencia: ${nom}`, message: lines.join('\n'), tags: ['round_pushpin'] };
+  if (sugPos) body.click = `https://www.openstreetmap.org/?mlat=${sugPos.lat.toFixed(5)}&mlon=${sugPos.lon.toFixed(5)}#map=15/${sugPos.lat.toFixed(5)}/${sugPos.lon.toFixed(5)}`;
+  $('sMsg').textContent = 'Enviando…';
+  try {
+    const r = await publish(body);
+    if (!r.ok) throw new Error();
+    $('sMsg').textContent = '¡Gracias! Recibimos la sugerencia. Si el lugar sirve, aparecerá en la app con un límite aproximado hasta calibrarlo.';
+    $('sugForm').reset(); sugPos = null; $('sGeoMsg').textContent = '';
+  } catch { $('sMsg').textContent = 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.'; }
+});
+$('sDonde').addEventListener('input', () => $('sDonde').setCustomValidity(''));
+
 /* ---------- compartir ---------- */
 if (APK) $('apkBtn').hidden = true;
 $('shareBtn').addEventListener('click', async () => {
-  const data = { title: 'Bajamar', text: 'Bajamar: mareas de cualquier día y horarios para cruzar a ' + P.nombre, url: DESCARGA };
+  const data = { title: 'Bajamar', text: 'Bajamar: mareas de cualquier día y lugar de Chile', url: DESCARGA };
   if (navigator.share) { try { await navigator.share(data); return; } catch (e) { if (e.name === 'AbortError') return; } }
   const sp = document.createElement('span'); sp.textContent = DESCARGA;
   $('shareMsg').textContent = (await copy(DESCARGA, sp)) ? 'Enlace copiado: ' + DESCARGA : DESCARGA;
 });
 
 /* ---------- arranque ---------- */
-$('place').innerHTML = '<b class="brand">Bajamar</b> · ' + esc(P.paso ? `${P.paso.desde} ⇄ ${P.nombre}` : P.nombre);
-document.title = 'Bajamar · ' + P.nombre;
-try {
-  const c = JSON.parse(store.get(K('datos')));
-  if (c && c.t0 + (c.v.length - 1) * H > Date.now()) D = c;
-} catch {}
-buildScene();
+setPlace(places().find(l => l.id === store.get('mareas.lugar')) || BASE.find(l => l.id === 'nao') || BASE[0], true);
 showTab(tab);
 requestAnimationFrame(drawWater);
 Promise.race([load(), new Promise(r => setTimeout(r, 4000))]).then(() => window.splashReady && window.splashReady());
