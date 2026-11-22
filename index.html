@@ -167,6 +167,11 @@
   #splash .stage{position:absolute;inset:0}
   #splash video,#splash .fb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   #splash .fb{background:url(splash/fin.jpg) center/cover;opacity:0}
+  #splash .grain{position:absolute;inset:0;background:url(splash/granos.jpg) 0 0/440px 440px repeat;mix-blend-mode:overlay;opacity:.78;pointer-events:none;
+    -webkit-mask-image:linear-gradient(to top,#000 45%,transparent 55%);mask-image:linear-gradient(to top,#000 45%,transparent 55%);
+    -webkit-mask-size:100% 250%;mask-size:100% 250%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+    -webkit-mask-position:0 45%;mask-position:0 45%;animation:spGrain 4s cubic-bezier(.4,0,.3,1) .2s forwards}
+  @keyframes spGrain{to{-webkit-mask-position:0 79%;mask-position:0 79%}}
   #splash.fallback .fb{animation:spFade 3.2s ease-in-out .3s forwards}
   #splash.fallback .stage{animation:spZoom 3.6s ease-in-out forwards}
   @keyframes spFade{to{opacity:1}} @keyframes spZoom{to{transform:scale(1.14)}}
@@ -256,6 +261,8 @@
       <source src="splash/marea.mp4" type="video/mp4">
     </video>
     <div class="fb"></div>
+    <!-- granos de arena: textura macro real (Flux) en mosaico; gris medio = neutro (overlay) -->
+    <div class="grain"></div>
   </div>
   <svg class="word" viewBox="0 0 640 250" aria-hidden="true">
     <defs>
