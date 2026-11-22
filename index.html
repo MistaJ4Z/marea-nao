@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#04806f">
 <title>Bajamar</title>
+<script src="i18n.js"></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -252,6 +253,10 @@
   .calgrid button[aria-current="date"] i{background:color-mix(in srgb,var(--card) 30%,transparent)}
   .callegend{margin:12px 0 0;font-size:13px;color:var(--muted)}
   .daynav button:disabled{opacity:.3;cursor:default}
+  .hola h2{font-size:24px;margin:4px 0 8px} .hola h3{font-size:16px;margin:22px 0 4px} .hola p{margin:0 0 10px;color:var(--muted);font-size:15px}
+  .btnlike.primary{background:var(--sea);border-color:var(--sea);color:#fff}
+  body[data-sky="night"] .btnlike.primary{color:#0a1e1d}
+  button[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
 </style>
 </head>
 <body data-sky="day">
@@ -485,11 +490,15 @@
       <p class="note" style="font-size:15px;margin-bottom:12px">Un paso a una isla, un camino por la playa, una zona para mariscar o una rampa para botes. Cuéntanos y lo calibramos para la app.</p>
       <button type="button" class="sugOpen">Sugerir un lugar</button>
     </div>
+    <div class="card pad">
+      <h2>Idioma</h2>
+      <div class="row" id="langRow" data-no-tr></div>
+    </div>
     <div class="card pad about">
       <h2>Cómo se calcula la marea</h2>
-      <p>Para los próximos <b>10 días</b> se usa el pronóstico del modelo oceánico de Open-Meteo, descargado al abrir la app.</p>
-      <p>Para cualquier otra fecha, la marea se <b>calcula</b> con sus componentes astronómicas (la Luna y el Sol), igual que las tablas oficiales. Las constantes se obtienen de más de un año de datos de cada punto y se recalculan periódicamente. Comparado con el pronóstico, acierta la hora de pleamares y bajamares con unos <b>±3 minutos</b> y la altura con unos <b>±5 cm</b>. Funciona sin internet.</p>
-      <p>El viento y la presión pueden mover la marea real unos centímetros o minutos. No es la tabla oficial del SHOA: cruza con margen y mirando el agua.</p>
+      <p data-i18n="calc1">Para los próximos <b>10 días</b> se usa el pronóstico del modelo oceánico de Open-Meteo, descargado al abrir la app.</p>
+      <p data-i18n="calc2">Para cualquier otra fecha, la marea se <b>calcula</b> con sus componentes astronómicas (la Luna y el Sol), igual que las tablas oficiales. Las constantes se obtienen de más de un año de datos de cada punto y se recalculan periódicamente. Comparado con el pronóstico, acierta la hora de pleamares y bajamares con unos <b>±3 minutos</b> y la altura con unos <b>±5 cm</b>. Funciona sin internet.</p>
+      <p data-i18n="calc3">El viento y la presión pueden mover la marea real unos centímetros o minutos. No es la tabla oficial del SHOA: cruza con margen y mirando el agua.</p>
       <p id="foot" class="note"></p>
     </div>
   </section>
@@ -505,6 +514,26 @@
 </nav>
 
 <!-- ================= DIÁLOGOS ================= -->
+<dialog class="sheet" id="dlgHola" aria-labelledby="holaT">
+  <div class="sh-body hola">
+    <h2 id="holaT">Bienvenido a Bajamar</h2>
+    <p>Mareas de cualquier día, sin internet, y los horarios para cruzar a pie a islas y orillas que dependen de la marea.</p>
+    <div class="row" id="holaLang" data-no-tr></div>
+    <h3>¿Dónde quieres ver la marea?</h3>
+    <p class="note">Con tu ubicación buscamos la playa o localidad más cercana. No se guarda ni se envía a nadie.</p>
+    <div class="row"><button type="button" id="holaGeo" class="btnlike primary">Usar mi ubicación</button><button type="button" id="holaBuscar">Buscar manualmente</button></div>
+    <div id="holaOut"></div>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="dlgPremium" aria-labelledby="premT">
+  <div class="sh-head"><h2 id="premT">Bajamar Premium</h2><button type="button" data-close aria-label="Cerrar">×</button></div>
+  <div class="sh-body hola">
+    <p>El plan gratis muestra la marea de los próximos 7 días. Con Premium ves cualquier fecha, las ventanas para cruzar de todo el año y avisos ilimitados.</p>
+    <p class="note">Muy pronto. Los colaboradores que calibran lugares lo reciben gratis.</p>
+  </div>
+</dialog>
+
 <dialog class="sheet" id="dlgPlace" aria-labelledby="dlgPlaceT">
   <div class="sh-head"><h2 id="dlgPlaceT">Elegir lugar</h2><button type="button" data-close aria-label="Cerrar">×</button></div>
   <div class="sh-body">
@@ -560,6 +589,11 @@ const DESCARGA = SITIO + 'descargar.html';
 const APK = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 // Ventanas de cruce en días futuros: gratis durante la prueba. Para cobrarlas más adelante, poner en false.
 const PRUEBA_GRATIS = true;
+// Plan gratis: solo los próximos DIAS_GRATIS días; más allá se necesita Premium.
+// Apagado hasta que exista el cobro (cuentas + pago). Para activarlo: LIMITE_GRATIS = true.
+const LIMITE_GRATIS = false, DIAS_GRATIS = 7;
+const esPremium = () => store.get('mareas.premium') === '1';      // lo fijará la cuenta del usuario (Supabase)
+const bloqueado = k => LIMITE_GRATIS && !esPremium() && (diffDays(today(), k) >= DIAS_GRATIS || diffDays(today(), k) < 0);
 const SUGERENCIAS = 'bajamar-sug-e510f4450bb6';   // canal ntfy donde llegan las sugerencias de lugares
 const REVISAR_DIAS = 90;                           // cada cuánto se recomienda revisar la calibración
 const DIAS_TIRA = 14;                              // días que se recorren con las flechas
@@ -574,17 +608,17 @@ const TIPO = { paso: 'Paso a pie', camino: 'Camino con marea baja', orilla: 'Ori
 /* ---------- formato y fechas ---------- */
 // formatos según la zona horaria del lugar elegido (cambian con setTZ)
 let fTime, fKey, fDow, fHour, fLong, fShort, fDate, fParts;
-const fMonth = new Intl.DateTimeFormat('es-CL', { timeZone: 'UTC', month: 'long', year: 'numeric' });
+const fMonth = new Intl.DateTimeFormat(self.LOCALE, { timeZone: 'UTC', month: 'long', year: 'numeric' });
 function setTZ(tz) {
   try { new Intl.DateTimeFormat('en', { timeZone: tz }); } catch { tz = 'UTC'; }
   TZ = tz;
-  fTime = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  fTime = new Intl.DateTimeFormat(self.LOCALE, { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   fKey  = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
-  fDow  = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'short' });
+  fDow  = new Intl.DateTimeFormat(self.LOCALE, { timeZone: TZ, weekday: 'short' });
   fHour = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hourCycle: 'h23' });
-  fLong = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' });
-  fShort = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' });
-  fDate = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, day: 'numeric', month: 'long', year: 'numeric' });
+  fLong = new Intl.DateTimeFormat(self.LOCALE, { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' });
+  fShort = new Intl.DateTimeFormat(self.LOCALE, { timeZone: TZ, day: 'numeric', month: 'short' });
+  fDate = new Intl.DateTimeFormat(self.LOCALE, { timeZone: TZ, day: 'numeric', month: 'long', year: 'numeric' });
   fParts = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
   startCache.clear();
 }
@@ -610,7 +644,7 @@ const dayName = k => {
   return fDow.format(noon(k)).replace('.', '');
 };
 const when = t => { const d = dayName(keyOf(t)); return d === 'hoy' ? hhmm(t) : `${d} ${hhmm(t)}`; };
-const fmtH = (h, d = 2) => (h < 0 ? '−' : '+') + Math.abs(h).toFixed(d).replace('.', ',') + ' m';
+const fmtH = (h, d = 2) => (h < 0 ? '−' : '+') + Math.abs(h).toFixed(d).replace('.', self.DEC) + ' m';
 const fmtCm = m => Math.round(Math.abs(m) * 100) + ' cm';
 const dur = ms => { const m = Math.max(0, Math.round(ms / MIN)), h = Math.floor(m / 60); return h ? `${h} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`; };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -774,7 +808,7 @@ for (const d of document.querySelectorAll('dialog.sheet')) {
 
 /* ---------- día elegido ---------- */
 let sel = today();
-function pick(k) { sel = k; renderAll(); }
+function pick(k) { if (bloqueado(k)) { openDlg('dlgPremium'); return; } sel = k; renderAll(); }
 function go(step) {          // las flechas solo recorren los próximos días (los de la tira)
   const t = today(), n = diffDays(t, sel);
   if (n < 0 || n > DIAS_TIRA - 1) return pick(t);
@@ -785,7 +819,7 @@ function daybar() {
   const inStrip = n >= 0 && n < DIAS_TIRA;
   let s = `<div class="daynav"><button type="button" data-go="-1" aria-label="Día anterior" ${inStrip && n === 0 ? 'disabled' : ''}>‹</button>` +
     `<div class="t"><b>${esc(fLong.format(noon(sel)))}${n < 0 || n > 300 ? ' de ' + sel.slice(0, 4) : ''}</b><small>${n === 0 ? 'hoy' : n === 1 ? 'mañana' : n > 0 ? `en ${n} días` : `hace ${-n} días`}` +
-    ` · rango ${r.toFixed(1).replace('.', ',')} m${kd ? `<span class="tag ${kd}">marea ${kd}</span>` : ''}</small></div>` +
+    ` · rango ${r.toFixed(1).replace('.', self.DEC)} m${kd ? `<span class="tag ${kd}">marea ${kd}</span>` : ''}</small></div>` +
     `<button type="button" data-go="1" aria-label="Día siguiente" ${inStrip && n === DIAS_TIRA - 1 ? 'disabled' : ''}>›</button></div><div class="strip">`;
   for (let i = 0; i < DIAS_TIRA; i++) {
     const k = addDays(t, i), rr = range(k);
@@ -818,7 +852,7 @@ function openCal() { calY = +sel.slice(0, 4); calM = +sel.slice(5, 7) - 1; drawC
 function drawCal() {
   $('calTitle').textContent = fMonth.format(Date.UTC(calY, calM, 15));
   const first = new Date(Date.UTC(calY, calM, 1)), lead = (first.getUTCDay() + 6) % 7, t = today();
-  let s = ['lu', 'ma', 'mi', 'ju', 'vi', 'sá', 'do'].map(d => `<div class="wd">${d}</div>`).join('');
+  let s = (self.LANG === 'en' ? ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] : ['lu', 'ma', 'mi', 'ju', 'vi', 'sá', 'do']).map(d => `<div class="wd">${d}</div>`).join('');
   for (let i = 0; i < 42; i++) {
     const k = new Date(Date.UTC(calY, calM, 1 - lead + i)).toISOString().slice(0, 10), out = +k.slice(5, 7) - 1 !== calM;
     if (i >= 35 && out && +k.slice(8) < 8 && i % 7 === 0) break;
@@ -853,7 +887,7 @@ function chart(id, paso) {
   for (let m = -lim; m <= lim + 1e-9; m += stepM / (stepM < 1 ? 1 : 1)) {
     const yy = y(m).toFixed(1);
     s += `<line x1="${L}" x2="${L + pw}" y1="${yy}" y2="${yy}" style="stroke:var(--grid)" stroke-width="${Math.abs(m) < 1e-9 ? 1.6 : 1}"/>` +
-         `<text x="${L - 7}" y="${+yy + 4.5}" text-anchor="end" font-size="13" style="fill:var(--muted)">${m > 0 ? '+' : m < 0 ? '−' : ''}${String(Math.abs(m)).replace('.', ',')}</text>`;
+         `<text x="${L - 7}" y="${+yy + 4.5}" text-anchor="end" font-size="13" style="fill:var(--muted)">${m > 0 ? '+' : m < 0 ? '−' : ''}${String(Math.abs(m)).replace('.', self.DEC)}</text>`;
   }
   const every = W >= 640 ? 2 : 3;
   for (let t = a; t <= b + 1; t += H) {
@@ -922,7 +956,7 @@ const calChip = () => { const c = calib(); return !c ? '' : c.estado === 'falta'
 
 /* ---------- pestaña Mareas ---------- */
 let mapOpen = false;
-const fmtKm = d => d < 10 ? d.toFixed(1).replace('.', ',') + ' km' : Math.round(d).toLocaleString('es-CL') + ' km';
+const fmtKm = d => d < 10 ? d.toFixed(1).replace('.', self.DEC) + ' km' : Math.round(d).toLocaleString('es-CL') + ' km';
 function renderMareas(now) {
   const h = tide(now), rate = (tide(now + 5 * MIN) - tide(now - 5 * MIN)) * 6;
   $('nNum').textContent = fmtH(h);
@@ -1092,7 +1126,7 @@ function foot() {
   if (D) s += `Pronóstico descargado ${esc(when(D.fetched))}, válido hasta ${esc(when(tEnd()))}. `;
   else s += 'Sin pronóstico descargado: todo se muestra con el cálculo astronómico. ';
   if (fetchErr) s += `<span class="err">No se pudo actualizar (${esc(fetchErr)}). </span>`;
-  s += `Punto: ${Math.abs(P.lat).toFixed(3)}° ${P.lat < 0 ? 'S' : 'N'}, ${Math.abs(P.lon).toFixed(3)}° ${P.lon < 0 ? 'O' : 'E'}. Hora local: ${esc(TZ)}. Constantes ajustadas el ${esc(P.ajustado)}.`;
+  s += `Punto: ${Math.abs(P.lat).toFixed(3)}° ${P.lat < 0 ? 'S' : 'N'}, ${Math.abs(P.lon).toFixed(3)}° ${P.lon < 0 ? (self.LANG === 'en' ? 'W' : 'O') : 'E'}. Hora local: ${esc(TZ)}. Constantes ajustadas el ${esc(P.ajustado)}.`;
   $('foot').innerHTML = s;
 }
 
@@ -1184,7 +1218,7 @@ const GEO = 'https://geocoding-api.open-meteo.com/v1/search';
 function itemHTML(p) {
   const c = p.paso ? (p.paso.calibrado || +store.get(`mareas.umbralT.${p.id}`) ? '' : '<span class="chip warn">Falta calibrar</span>') : '';
   const d = here ? km(here, p) : null;
-  return `<button type="button" class="pl" data-id="${esc(p.id)}" aria-current="${!!P && p.id === P.id}"><span><b>${esc(p.nombre)}</b><small>${esc(lugarTxt(p))}${p.tipo !== 'ciudad' && TIPO[p.tipo] ? ' · ' + esc(TIPO[p.tipo]) : ''}</small></span>` +
+  return `<button type="button" class="pl" data-id="${esc(p.id)}" aria-current="${!!P && p.id === P.id}"><span><b>${esc(p.nombre)}</b><small>${esc(lugarTxt(p))}${p.tipo !== 'ciudad' && TIPO[p.tipo] ? ' · <span>' + esc(TIPO[p.tipo]) + '</span>' : ''}</small></span>` +
     `<span class="tags">${d != null ? `<span class="km">${fmtKm(d)}</span>` : ''}${c}</span></button>`;
 }
 function placeList() {
@@ -1219,7 +1253,7 @@ function buscarMundo() {
   geoBusy = true;
   geoTimer = setTimeout(async () => {
     try {
-      const r = await fetch(`${GEO}?name=${encodeURIComponent($('q').value.trim())}&count=12&language=es&format=json`);
+      const r = await fetch(`${GEO}?name=${encodeURIComponent($('q').value.trim())}&count=12&language=${self.LANG}&format=json`);
       const j = await r.json();
       if (norm($('q').value.trim()) !== q) return;
       geo = j.results || []; geoQ = q;
@@ -1263,8 +1297,8 @@ $('geoBtn').addEventListener('click', async () => {
     placeList(); renderAll();
   } catch (e) { out.innerHTML = `<p class="note err" style="margin-top:10px">${esc(e.message)}</p>`; }
 });
-async function fitPoint(pt, meta) {
-  const out = $('geoOut');
+async function fitPoint(pt, meta, outEl) {
+  const out = outEl || $('geoOut');
   const msg = h => { out.innerHTML = `<div class="near">${h}</div>`; out.scrollIntoView({ block: 'nearest' }); };
   msg(`Descargando un año de mareas para <b>${esc(meta.nombre)}</b>…`);
   try {
@@ -1280,7 +1314,7 @@ async function fitPoint(pt, meta) {
     const p = { ...meta, lat: pt.lat, lon: pt.lon, armonicos: ajustar(datos), ajustado: ymd(hoy), celda, dist };
     store.set(`mareas.off.${p.id}`, ''); store.set(`mareas.datos.${p.id}`, '');
     if (p.id === 'punto') guardarReciente(p);
-    $('dlgPlace').close(); setPlace(p);
+    $('dlgPlace').close(); $('dlgHola').close(); setPlace(p);
   } catch (e) { msg(`<span class="err">${esc(e.message || e)}</span>`); }
 }
 
@@ -1317,11 +1351,37 @@ $('sDonde').addEventListener('input', () => $('sDonde').setCustomValidity(''));
 /* ---------- compartir ---------- */
 if (APK) $('apkBtn').hidden = true;
 $('shareBtn').addEventListener('click', async () => {
-  const data = { title: 'Bajamar', text: 'Bajamar: mareas de cualquier día y lugar de Chile', url: DESCARGA };
+  const data = { title: 'Bajamar', text: self.LANG === 'en' ? 'Bajamar: tides for any day and place' : 'Bajamar: mareas de cualquier día y lugar', url: DESCARGA };
   if (navigator.share) { try { await navigator.share(data); return; } catch (e) { if (e.name === 'AbortError') return; } }
   const sp = document.createElement('span'); sp.textContent = DESCARGA;
   $('shareMsg').textContent = (await copy(DESCARGA, sp)) ? 'Enlace copiado: ' + DESCARGA : DESCARGA;
 });
+
+/* ---------- idioma y bienvenida ---------- */
+function langButtons(el) {
+  el.innerHTML = Object.entries(self.IDIOMAS).map(([k, v]) => `<button type="button" data-lang="${k}" aria-pressed="${k === self.LANG}">${v}</button>`).join('');
+  el.onclick = e => { const b = e.target.closest('[data-lang]'); if (b && b.dataset.lang !== self.LANG) { store.set('mareas.bienvenida', b.closest('#holaLang') ? 'idioma' : store.get('mareas.bienvenida') || ''); self.setLang(b.dataset.lang); } };
+}
+langButtons($('langRow')); langButtons($('holaLang'));
+for (const el of document.querySelectorAll('[data-i18n]')) { const h = (self.I18N_HTML?.[self.LANG] || {})[el.dataset.i18n]; if (h) { el.dataset.noTr = ''; el.innerHTML = h; } }
+function bienvenida() {
+  const b = store.get('mareas.bienvenida');
+  if (b === 'ok') return;
+  const abrir = () => { if (document.getElementById('splash')) return setTimeout(abrir, 300); openDlg('dlgHola'); };
+  abrir();
+}
+$('holaBuscar').addEventListener('click', () => { store.set('mareas.bienvenida', 'ok'); $('dlgHola').close(); $('placeBtn').click(); });
+$('holaGeo').addEventListener('click', async () => {
+  const out = $('holaOut'); out.innerHTML = `<div class="near">${self.tr('Buscando tu ubicación…')}</div>`;
+  try {
+    here = await locate();
+    store.set('mareas.bienvenida', 'ok');
+    const near = places().map(p => [km(here, p), p]).sort((a, b) => a[0] - b[0])[0];
+    if (near && near[0] <= 8) { $('dlgHola').close(); if (near[1].id !== P.id) setPlace(near[1]); else renderAll(); return; }
+    fitPoint(here, { id: 'punto', nombre: 'Mi punto', comuna: near ? `cerca de ${near[1].nombre}` : '', region: near?.[1].region || '', pais: near?.[1].pais || '', tz: Intl.DateTimeFormat().resolvedOptions().timeZone, tipo: 'punto' }, out);
+  } catch (e) { out.innerHTML = `<div class="near err">${esc(e.message)}</div>`; }
+});
+$('dlgHola').addEventListener('close', () => { if (store.get('mareas.bienvenida') !== 'idioma') store.set('mareas.bienvenida', 'ok'); });
 
 /* ---------- arranque ---------- */
 setPlace(places().find(l => l.id === store.get('mareas.lugar')) || BASE.find(l => l.id === 'nao') || BASE[0], true);
@@ -1329,6 +1389,7 @@ showTab(tab);
 requestAnimationFrame(drawWater);
 Promise.race([load(), new Promise(r => setTimeout(r, 4000))]).then(() => window.splashReady && window.splashReady());
 avisosUI(); sync();
+bienvenida();
 setInterval(sync, 10 * 60e3);
 setInterval(() => { if (keyOf(Date.now()) !== keyOf(Date.now() - 20e3) && sel === keyOf(Date.now() - 20e3)) sel = today(); renderAll(); }, 20e3);
 setInterval(load, 30 * 60e3);
