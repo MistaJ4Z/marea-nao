@@ -158,7 +158,7 @@
   nav.tabs button{flex:1;max-width:220px;border:0;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;font-size:12.5px;color:var(--muted);min-height:52px}
   nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   nav.tabs button[aria-selected="true"]{color:var(--ink);background:color-mix(in srgb,var(--sea) 14%,transparent)}
-  [role=tabpanel][hidden]{display:none}
+  [role=tabpanel][hidden],nav.tabs button[hidden]{display:none}
 
   /* ---- pantalla de carga ---- */
   @font-face{font-family:"Bajamar Script";src:url(fonts/pacifico-bajamar.woff2) format("woff2");font-display:block}
@@ -205,6 +205,7 @@
   .chip.warn{background:var(--warn-bg);color:var(--warn)}
   .info p{margin:8px 0 0;font-size:15px;color:var(--muted)}
   .info .row{margin-top:12px}
+  .info iframe.map{display:block;width:100%;height:260px;border:0;border-radius:12px;margin-top:12px;background:var(--line)}
   .banner{display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-radius:14px;background:var(--warn-bg);margin:14px 0 0;font-size:14.5px;line-height:1.4}
   .banner b{color:var(--warn)}
   .banner span{flex:1 1 220px}
@@ -553,7 +554,7 @@
 <script type="module">
 import { predictor, ajustar } from './marea-calc.js';
 
-const TZ = 'America/Santiago', H = 3600e3, MIN = 60e3, DAY = 24 * H;
+let TZ = 'America/Santiago'; const H = 3600e3, MIN = 60e3, DAY = 24 * H;
 const SITIO = 'https://mistaj4z.github.io/marea-nao/';
 const DESCARGA = SITIO + 'descargar.html';
 const APK = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -571,15 +572,22 @@ const store = {
 const TIPO = { paso: 'Paso a pie', camino: 'Camino con marea baja', orilla: 'Orilla y marisqueo', ciudad: 'Ciudad costera', punto: 'Tu punto' };
 
 /* ---------- formato y fechas ---------- */
-const fTime = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-const fKey  = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
-const fDow  = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'short' });
-const fHour = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hourCycle: 'h23' });
-const fLong = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' });
-const fShort = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' });
+// formatos según la zona horaria del lugar elegido (cambian con setTZ)
+let fTime, fKey, fDow, fHour, fLong, fShort, fDate, fParts;
 const fMonth = new Intl.DateTimeFormat('es-CL', { timeZone: 'UTC', month: 'long', year: 'numeric' });
-const fDate = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, day: 'numeric', month: 'long', year: 'numeric' });
-const fParts = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+function setTZ(tz) {
+  try { new Intl.DateTimeFormat('en', { timeZone: tz }); } catch { tz = 'UTC'; }
+  TZ = tz;
+  fTime = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  fKey  = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
+  fDow  = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'short' });
+  fHour = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hourCycle: 'h23' });
+  fLong = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' });
+  fShort = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' });
+  fDate = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, day: 'numeric', month: 'long', year: 'numeric' });
+  fParts = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+  startCache.clear();
+}
 const hhmm = t => fTime.format(t);
 const keyOf = t => fKey.format(t);
 const today = () => keyOf(Date.now());
@@ -593,6 +601,7 @@ function dayStart(k) {
   let t = base; for (let i = 0; i < 3; i++) t = base - (wall(t) - t);
   startCache.set(k, t); return t;
 }
+setTZ(TZ);
 const dayEnd = k => dayStart(addDays(k, 1));
 const noon = k => dayStart(k) + 12 * H;
 const dayName = k => {
@@ -610,13 +619,28 @@ const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase
 
 /* ---------- lugares ---------- */
 const BASE = self.LUGARES || [];
-const custom = () => { try { const c = JSON.parse(store.get('mareas.custom')); return c && c.armonicos ? c : null; } catch { return null; } };
-const places = () => { const c = custom(); return c ? [c, ...BASE] : BASE; };
+// lugares calculados en el teléfono (búsqueda mundial o "mi punto"), los más recientes primero
+function recientes() {
+  try {
+    let r = JSON.parse(store.get('mareas.recientes') || '[]');
+    const old = JSON.parse(store.get('mareas.custom') || 'null');      // versión anterior: un solo punto
+    if (old && old.armonicos && !r.some(x => x.id === old.id)) { r.unshift(old); store.set('mareas.recientes', JSON.stringify(r)); store.set('mareas.custom', ''); }
+    return r.filter(x => x && x.armonicos);
+  } catch { return []; }
+}
+function guardarReciente(p) {
+  const r = [p, ...recientes().filter(x => x.id !== p.id)].slice(0, 12);
+  store.set('mareas.recientes', JSON.stringify(r));
+}
+const places = () => [...recientes(), ...BASE];
+const lugarTxt = p => [p.comuna && p.comuna !== p.nombre ? p.comuna : '', p.zona, p.region, p.pais && p.pais !== 'Chile' ? p.pais : ''].filter(Boolean).join(' · ');
 let P = null, K = null, harm = null, OFF = 0, D = null, thr = 0, lim = 3, VIVA = 9, MUERTA = 0, fetchErr = null, gen = 0;
 const extCache = new Map();
 
 function setPlace(p, boot) {
   P = p; K = k => `mareas.${k}.${P.id}`; store.set('mareas.lugar', p.id);
+  if (p.armonicos && p.id.startsWith('g')) guardarReciente(p);
+  if ((P.tz || 'America/Santiago') !== TZ) setTZ(P.tz || 'America/Santiago');
   if (P.id === 'nao' && store.get('mareas.umbral') != null && store.get(K('umbral')) == null) {     // migración v1
     store.set(K('umbral'), store.get('mareas.umbral'));
     if (store.get('mareas.umbralT')) store.set(K('umbralT'), store.get('mareas.umbralT'));
@@ -631,7 +655,7 @@ function setPlace(p, boot) {
   gen++; extCache.clear();
 
   $('placeName').textContent = P.nombre;
-  $('placeSub').textContent = [P.comuna !== P.nombre ? P.comuna : '', P.region].filter(Boolean).join(' · ');
+  $('placeSub').textContent = lugarTxt(P);
   document.title = 'Bajamar · ' + P.nombre;
   $('t-paso').hidden = !P.paso;
   $('tPasoLbl').textContent = P.tipo === 'paso' ? 'Paso a ' + P.nombre.replace(/^Islas? /, '') : 'Paso';
@@ -897,6 +921,8 @@ function calib() {
 const calChip = () => { const c = calib(); return !c ? '' : c.estado === 'falta' ? '<span class="chip warn">Falta calibrar</span>' : c.estado === 'revisar' ? '<span class="chip warn">Revisar calibración</span>' : '<span class="chip">Calibrado</span>'; };
 
 /* ---------- pestaña Mareas ---------- */
+let mapOpen = false;
+const fmtKm = d => d < 10 ? d.toFixed(1).replace('.', ',') + ' km' : Math.round(d).toLocaleString('es-CL') + ' km';
 function renderMareas(now) {
   const h = tide(now), rate = (tide(now + 5 * MIN) - tide(now - 5 * MIN)) * 6;
   $('nNum').textContent = fmtH(h);
@@ -907,15 +933,17 @@ function renderMareas(now) {
   $('nNext').innerHTML = nx ? `${nx.high ? 'Próxima pleamar' : 'Próxima bajamar'}<b>${esc(when(nx.t))} · ${fmtH(nx.h, 1)}</b>en ${dur(nx.t - now)}` : '';
 
   const inf = $('placeInfo');
-  if (P.tipo === 'ciudad') inf.hidden = true;
-  else {
+  {
     inf.hidden = false;
-    let s = `<div class="row" style="margin:0;gap:6px"><span class="chip">${esc(TIPO[P.tipo] || P.tipo)}</span>${calChip()}</div>`;
+    let s = `<div class="row" style="margin:0;gap:6px"><span class="chip">${esc(TIPO[P.tipo] || P.tipo)}</span>${calChip()}${here ? `<span class="chip">a ${fmtKm(km(here, P))} de ti</span>` : ''}</div>`;
     if (P.nota) s += `<p>${esc(P.nota)}</p>`;
-    if (P.tipo === 'punto') s += `<p>Marea calculada para tu punto con un año de datos del modelo oceánico${P.dist ? ` (celda a ${P.dist.toFixed(1).replace('.', ',')} km)` : ''}.</p>`;
-    if (P.paso) s += `<div class="row"><button type="button" id="goPaso">Ver horarios del paso</button></div>`;
-    inf.innerHTML = s;
+    if (P.armonicos && P.dist != null) s += `<p>Marea calculada en el teléfono con un año de datos del modelo oceánico (punto de mar a ${fmtKm(P.dist)}).${P.dist > 15 ? ' Al estar lejos, la hora puede diferir unos minutos.' : ''}</p>`;
+    s += `<div class="row">${P.paso ? '<button type="button" id="goPaso">Ver horarios del paso</button>' : ''}<button type="button" id="mapBtn">${mapOpen ? 'Ocultar mapa' : 'Ver en el mapa'}</button>` +
+      `<a class="btnlike" href="https://www.google.com/maps/dir/?api=1&destination=${P.lat.toFixed(5)},${P.lon.toFixed(5)}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Cómo llegar</a></div>`;
+    if (mapOpen) s += `<iframe class="map" title="Mapa de ${esc(P.nombre)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=${P.lat.toFixed(5)},${P.lon.toFixed(5)}&z=13&output=embed"></iframe>`;
+    if (inf.dataset.k !== s) { inf.innerHTML = s; inf.dataset.k = s; }
     $('goPaso')?.addEventListener('click', () => showTab('paso'));
+    $('mapBtn').onclick = () => { mapOpen = !mapOpen; renderAll(); };
   }
 
   chart('chM', false); readoutIdle('chM');
@@ -1064,7 +1092,7 @@ function foot() {
   if (D) s += `Pronóstico descargado ${esc(when(D.fetched))}, válido hasta ${esc(when(tEnd()))}. `;
   else s += 'Sin pronóstico descargado: todo se muestra con el cálculo astronómico. ';
   if (fetchErr) s += `<span class="err">No se pudo actualizar (${esc(fetchErr)}). </span>`;
-  s += `Punto: ${Math.abs(P.lat).toFixed(3)}° S, ${Math.abs(P.lon).toFixed(3)}° O. Constantes ajustadas el ${esc(P.ajustado)}.`;
+  s += `Punto: ${Math.abs(P.lat).toFixed(3)}° ${P.lat < 0 ? 'S' : 'N'}, ${Math.abs(P.lon).toFixed(3)}° ${P.lon < 0 ? 'O' : 'E'}. Hora local: ${esc(TZ)}. Constantes ajustadas el ${esc(P.ajustado)}.`;
   $('foot').innerHTML = s;
 }
 
@@ -1146,35 +1174,70 @@ $('avTest').addEventListener('click', async () => {
   } catch { $('avMsg').textContent = 'Sin conexión.'; }
 });
 
-/* ---------- elegir lugar ---------- */
-let here = null;      // { lat, lon } del teléfono
+/* ---------- elegir lugar ----------
+   Lugares de Bajamar (pasos calibrables y ciudades con constantes precalculadas) + cualquier
+   localidad del mundo (buscador de Open-Meteo). Para una localidad nueva se descarga un año de
+   marea del punto de mar más cercano y se ajustan las constantes en el teléfono. */
+let here = null;          // { lat, lon } del teléfono
+let geo = [], geoQ = '', geoTimer = null, geoBusy = false;
+const GEO = 'https://geocoding-api.open-meteo.com/v1/search';
+function itemHTML(p) {
+  const c = p.paso ? (p.paso.calibrado || +store.get(`mareas.umbralT.${p.id}`) ? '' : '<span class="chip warn">Falta calibrar</span>') : '';
+  const d = here ? km(here, p) : null;
+  return `<button type="button" class="pl" data-id="${esc(p.id)}" aria-current="${!!P && p.id === P.id}"><span><b>${esc(p.nombre)}</b><small>${esc(lugarTxt(p))}${p.tipo !== 'ciudad' && TIPO[p.tipo] ? ' · ' + esc(TIPO[p.tipo]) : ''}</small></span>` +
+    `<span class="tags">${d != null ? `<span class="km">${fmtKm(d)}</span>` : ''}${c}</span></button>`;
+}
 function placeList() {
   const q = norm($('q').value.trim()), list = places();
-  const hit = p => !q || norm(`${p.nombre} ${p.comuna} ${p.zona || ''} ${p.region} ${TIPO[p.tipo] || ''}`).includes(q);
   let s = '';
-  const item = p => {
-    const c = p.paso ? (() => { const dataT = p.paso.calibrado ? 1 : 0, lt = +store.get(`mareas.umbralT.${p.id}`) || 0; return dataT || lt ? '' : '<span class="chip warn">Falta calibrar</span>'; })() : '';
-    const d = here ? km(here, p) : null;
-    return `<button type="button" class="pl" data-id="${esc(p.id)}" aria-current="${p.id === P.id}"><span><b>${esc(p.nombre)}</b><small>${esc(p.comuna && p.comuna !== p.nombre ? p.comuna + ' · ' : '')}${esc(p.zona ? p.zona + ' · ' : '')}${esc(TIPO[p.tipo] || '')}</small></span>` +
-      `<span class="tags">${d != null ? `<span class="km">${d < 10 ? d.toFixed(1).replace('.', ',') : Math.round(d)} km</span>` : ''}${c}</span></button>`;
-  };
-  if (here && !q) {
-    const near = list.map(p => [km(here, p), p]).sort((a, b) => a[0] - b[0]).slice(0, 6);
-    s += `<h3>Más cercanos</h3>` + near.map(([, p]) => item(p)).join('');
+  if (!q) {
+    const rec = recientes();
+    if (here) s += `<h3>Cerca de ti</h3>` + list.map(p => [km(here, p), p]).sort((a, b) => a[0] - b[0]).slice(0, 6).map(([, p]) => itemHTML(p)).join('');
+    if (rec.length) s += `<h3>Recientes</h3>` + rec.map(itemHTML).join('');
+    s += `<h3>Pasos y orillas</h3>` + BASE.filter(p => p.tipo !== 'ciudad').map(itemHTML).join('');
+    s += `<p class="note" style="margin-top:14px">Escribe una ciudad, localidad o región de cualquier país para ver su marea.</p>`;
+  } else {
+    const mine = list.filter(p => norm(`${p.nombre} ${p.comuna || ''} ${p.zona || ''} ${p.region || ''} ${p.pais || ''} ${TIPO[p.tipo] || ''}`).includes(q));
+    if (mine.length) s += `<h3>En Bajamar</h3>` + mine.slice(0, 20).map(itemHTML).join('');
+    if (geoQ === q && geo.length) {
+      const known = new Set(mine.map(p => norm(p.nombre)));
+      const g = geo.filter(r => !known.has(norm(r.name)));
+      if (g.length) s += `<h3>Otras localidades</h3>` + g.map(r => {
+        const d = here ? km(here, { lat: r.latitude, lon: r.longitude }) : null;
+        return `<button type="button" class="pl" data-geo="${geo.indexOf(r)}"><span><b>${esc(r.name)}</b><small>${esc([r.admin2, r.admin1, r.country].filter(Boolean).join(' · '))}</small></span>` +
+          `<span class="tags">${d != null ? `<span class="km">${fmtKm(d)}</span>` : ''}<span class="chip">calcular</span></span></button>`;
+      }).join('');
+    } else if (geoBusy) s += `<p class="note" style="margin-top:14px">Buscando localidades…</p>`;
+    if (!s) s = `<p class="note" style="margin-top:14px">${navigator.onLine === false ? 'Sin conexión: solo se buscan los lugares guardados.' : 'No encontramos ese lugar. Prueba con otra escritura, usa tu ubicación o sugiérelo.'}</p>`;
   }
-  const regs = [...new Set(list.map(p => p.region))];
-  for (const r of regs) {
-    const ps = list.filter(p => p.region === r && hit(p));
-    if (!ps.length) continue;
-    ps.sort((a, b) => (a.tipo === 'ciudad') - (b.tipo === 'ciudad'));
-    s += `<h3>${esc(r)}</h3>` + ps.map(item).join('');
-  }
-  $('placeList').innerHTML = s || `<p class="note" style="margin-top:14px">No hay lugares con ese nombre. Puedes usar tu ubicación o sugerirlo.</p>`;
+  $('placeList').innerHTML = s;
 }
-$('placeBtn').addEventListener('click', () => { $('q').value = ''; placeList(); openDlg('dlgPlace'); });
-$('q').addEventListener('input', placeList);
+function buscarMundo() {
+  const q = norm($('q').value.trim());
+  clearTimeout(geoTimer);
+  if (q.length < 2) { geo = []; geoQ = ''; geoBusy = false; return; }
+  geoBusy = true;
+  geoTimer = setTimeout(async () => {
+    try {
+      const r = await fetch(`${GEO}?name=${encodeURIComponent($('q').value.trim())}&count=12&language=es&format=json`);
+      const j = await r.json();
+      if (norm($('q').value.trim()) !== q) return;
+      geo = j.results || []; geoQ = q;
+    } catch { geo = []; geoQ = q; }
+    geoBusy = false; placeList();
+  }, 280);
+}
+$('placeBtn').addEventListener('click', () => { $('q').value = ''; $('geoOut').innerHTML = ''; geo = []; geoQ = ''; placeList(); openDlg('dlgPlace'); });
+$('q').addEventListener('input', () => { buscarMundo(); placeList(); });
 $('placeList').addEventListener('click', e => {
   const b = e.target.closest('.pl'); if (!b) return;
+  if (b.dataset.geo != null) {
+    const r = geo[+b.dataset.geo]; if (!r) return;
+    const id = 'g' + r.id, ya = recientes().find(x => x.id === id);
+    if (ya) { $('dlgPlace').close(); setPlace(ya); return; }
+    fitPoint({ lat: r.latitude, lon: r.longitude }, { id, nombre: r.name, comuna: r.admin2 || r.admin3 || '', region: r.admin1 || '', pais: r.country || '', tz: r.timezone, tipo: 'ciudad' });
+    return;
+  }
   const p = places().find(x => x.id === b.dataset.id); if (!p) return;
   $('dlgPlace').close(); if (p.id !== P.id) setPlace(p);
 });
@@ -1191,31 +1254,34 @@ $('geoBtn').addEventListener('click', async () => {
   const out = $('geoOut'); out.innerHTML = '<p class="note" style="margin-top:10px">Buscando tu ubicación…</p>';
   try {
     here = await locate();
-    const near = BASE.map(p => [km(here, p), p]).sort((a, b) => a[0] - b[0])[0];
-    let s = `<div class="near">Lo más cercano es <b>${esc(near[1].nombre)}</b>, a ${Math.round(near[0])} km.`;
-    if (near[0] > 8) s += ` Como estás lejos de los lugares de la lista, puedo calcular la marea en tu punto exacto (descarga un año de datos, unos segundos).<br><button type="button" id="fitHere">Calcular en mi punto</button>`;
+    $('q').value = '';
+    const near = places().map(p => [km(here, p), p]).sort((a, b) => a[0] - b[0])[0];
+    let s = `<div class="near">Lo más cercano en Bajamar es <b>${esc(near[1].nombre)}</b>, a ${fmtKm(near[0])}.`;
+    if (near[0] > 5) s += ` También puedo calcular la marea en tu punto exacto (descarga un año de datos, unos segundos).<br><button type="button" id="fitHere">Calcular en mi punto</button>`;
     out.innerHTML = s + '</div>';
-    $('fitHere')?.addEventListener('click', () => fitHere(near[1]));
-    placeList();
+    $('fitHere')?.addEventListener('click', () => fitPoint(here, { id: 'punto', nombre: 'Mi punto', comuna: `cerca de ${near[1].nombre}`, region: near[1].region, pais: near[1].pais, tz: Intl.DateTimeFormat().resolvedOptions().timeZone, tipo: 'punto' }));
+    placeList(); renderAll();
   } catch (e) { out.innerHTML = `<p class="note err" style="margin-top:10px">${esc(e.message)}</p>`; }
 });
-async function fitHere(near) {
-  const out = $('geoOut'); out.innerHTML = '<div class="near">Descargando un año de mareas para tu punto…</div>';
+async function fitPoint(pt, meta) {
+  const out = $('geoOut');
+  const msg = h => { out.innerHTML = `<div class="near">${h}</div>`; out.scrollIntoView({ block: 'nearest' }); };
+  msg(`Descargando un año de mareas para <b>${esc(meta.nombre)}</b>…`);
   try {
     const hoy = Date.now() - Date.now() % DAY, ymd = t => new Date(t).toISOString().slice(0, 10);
-    const r = await fetch(marineURL(here.lat.toFixed(4), here.lon.toFixed(4), `start_date=${ymd(hoy - 400 * DAY)}&end_date=${ymd(hoy - DAY)}`));
+    const r = await fetch(marineURL(pt.lat.toFixed(4), pt.lon.toFixed(4), `start_date=${ymd(hoy - 400 * DAY)}&end_date=${ymd(hoy - DAY)}`));
     const j = await r.json(); if (j.error) throw new Error(j.reason);
     const datos = []; j.hourly.time.forEach((t, i) => { const v = j.hourly.sea_level_height_msl[i]; if (v != null) datos.push([t * 1000, v]); });
-    if (datos.length < 24 * 200) throw new Error('El modelo oceánico no tiene datos de mar en este punto. Prueba desde la costa o elige el lugar más cercano.');
-    out.innerHTML = '<div class="near">Calculando las componentes de la marea…</div>';
+    const celda = [j.latitude, j.longitude], dist = km(pt, { lat: celda[0], lon: celda[1] });
+    if (datos.length < 24 * 200) throw new Error('El modelo oceánico no tiene datos de mar cerca de este punto.');
+    if (dist > 40) throw new Error(`${meta.nombre} queda a ${fmtKm(dist)} del mar más cercano que cubre el modelo. Elige una localidad costera.`);
+    msg('Calculando las componentes de la marea…');
     await new Promise(r => setTimeout(r, 30));
-    const arm = ajustar(datos), celda = [j.latitude, j.longitude];
-    const p = { id: 'punto', nombre: 'Mi punto', comuna: `cerca de ${near.nombre}`, region: near.region, lat: here.lat, lon: here.lon, tipo: 'punto',
-      armonicos: arm, ajustado: ymd(hoy), celda, dist: km(here, { lat: celda[0], lon: celda[1] }) };
-    store.set('mareas.custom', JSON.stringify(p));
-    store.set('mareas.off.punto', ''); store.set('mareas.datos.punto', '');
+    const p = { ...meta, lat: pt.lat, lon: pt.lon, armonicos: ajustar(datos), ajustado: ymd(hoy), celda, dist };
+    store.set(`mareas.off.${p.id}`, ''); store.set(`mareas.datos.${p.id}`, '');
+    if (p.id === 'punto') guardarReciente(p);
     $('dlgPlace').close(); setPlace(p);
-  } catch (e) { out.innerHTML = `<div class="near err">${esc(e.message || e)}</div>`; }
+  } catch (e) { msg(`<span class="err">${esc(e.message || e)}</span>`); }
 }
 
 /* ---------- sugerir un lugar ---------- */

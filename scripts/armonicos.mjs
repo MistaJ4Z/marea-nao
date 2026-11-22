@@ -74,13 +74,13 @@ for (const L of BASE) {
   }
   await sleep(400);
 }
-function pick(p) { const { armonicos, ajustado, celda, rango, rms } = p; return { armonicos, ajustado, celda, rango, rms, paso: p.paso }; }
+function pick(p) { const { armonicos, ajustado, celda, rango, rms } = p; return { armonicos, ajustado, celda, rango, rms }; }
 
 // pasos sin calibrar: mismo % del tiempo seco que el paso de Nao (calibrado en terreno)
 if (pNao == null) { const n = salida.find(l => l.id === 'nao'); if (n) pNao = fraccionBajo(predictor(n.armonicos), n.paso.umbral); }
 for (const l of salida) {
-  if (!l.paso) continue;
-  const base = BASE.find(b => b.id === l.id).paso;
+  const base = BASE.find(b => b.id === l.id).paso;     // el paso (y su calibración) viene siempre de lugares.base.json
+  if (!base) { delete l.paso; continue; }
   l.paso = { ...base };
   if (!base.calibrado && pNao != null) l.paso.umbral = +cuantil(predictor(l.armonicos), pNao).toFixed(2);
 }

@@ -1,11 +1,11 @@
 [
  {"id": "nao", "nombre": "Isla Nao", "comuna": "Calbuco", "region": "Los Lagos", "lat": -41.9085, "lon": -72.8827, "tipo": "paso", "paso": {"desde": "Rolecha", "umbral": -1.1, "calibrado": "2026-11-21"}, "nota": "Paso de arena entre Rolecha e Isla Nao que queda seco con marea baja."},
- {"id": "aucar", "nombre": "Isla Aucar", "comuna": "Quemchi", "region": "Los Lagos", "lat": -42.1615, "lon": -73.4793, "tipo": "paso", "paso": {"desde": "Quemchi"}, "nota": "Con marea baja se camina por el fondo marino; con marea alta se cruza por la pasarela de madera (~500 m).", "zona": "Chiloé"},
+ {"id": "aucar", "nombre": "Isla Aucar", "comuna": "Quemchi", "region": "Los Lagos", "lat": -42.1615, "lon": -73.4793, "tipo": "orilla", "nota": "Se cruza siempre por la pasarela de madera (~500 m), con cualquier marea. Con marea baja además se puede caminar por el fondo marino entre las rocas.", "zona": "Chiloé"},
  {"id": "quihua", "nombre": "Isla Quihua", "comuna": "Calbuco", "region": "Los Lagos", "lat": -41.7612, "lon": -73.2155, "tipo": "paso", "paso": {"desde": "la costa"}, "nota": "Isla con conexión por tierra. Por confirmar si el paso depende de la marea."},
  {"id": "linlinao", "nombre": "Isla Linlinao", "comuna": "Chonchi", "region": "Los Lagos", "lat": -42.5736, "lon": -73.748, "tipo": "paso", "paso": {"desde": "Quinched"}, "nota": "Antes la unía a Chiloé un banco de arena que aparecía con marea baja. Por confirmar si hoy se puede cruzar.", "zona": "Chiloé"},
  {"id": "tabon", "nombre": "Isla Tabón", "comuna": "Calbuco", "region": "Los Lagos", "lat": -41.8973, "lon": -73.0718, "tipo": "orilla", "nota": "Con mareas grandes queda descubierto un fondo de unos 400 m, muy usado para mariscar."},
  {"id": "chauques", "nombre": "Islas Chauques", "comuna": "Quemchi", "region": "Los Lagos", "lat": -42.3015, "lon": -73.2726, "tipo": "orilla", "nota": "Algunas islas del grupo se unen entre sí según la marea.", "zona": "Chiloé"},
- {"id": "caleta-maria", "nombre": "Caleta María", "comuna": "Timaukel", "region": "Magallanes", "lat": -54.4823, "lon": -68.9927, "tipo": "camino", "paso": {"desde": "el camino costero"}, "nota": "Un tramo del camino solo se puede pasar con marea baja."},
+ {"id": "caleta-maria", "nombre": "Caleta María", "comuna": "Timaukel", "region": "Magallanes", "lat": -54.4823, "lon": -68.9927, "tipo": "camino", "paso": {"desde": "el camino costero"}, "nota": "Un tramo del camino solo se puede pasar con marea baja.", "tz": "America/Punta_Arenas"},
  {"id": "arica", "nombre": "Arica", "comuna": "Arica", "region": "Arica y Parinacota", "lat": -18.475, "lon": -70.33, "tipo": "ciudad"},
  {"id": "iquique", "nombre": "Iquique", "comuna": "Iquique", "region": "Tarapacá", "lat": -20.21, "lon": -70.16, "tipo": "ciudad"},
  {"id": "tocopilla", "nombre": "Tocopilla", "comuna": "Tocopilla", "region": "Antofagasta", "lat": -22.09, "lon": -70.22, "tipo": "ciudad"},
@@ -22,7 +22,7 @@
  {"id": "valparaiso", "nombre": "Valparaíso y Viña del Mar", "comuna": "Valparaíso", "region": "Valparaíso", "lat": -33.02, "lon": -71.63, "tipo": "ciudad"},
  {"id": "algarrobo", "nombre": "Algarrobo", "comuna": "Algarrobo", "region": "Valparaíso", "lat": -33.36, "lon": -71.69, "tipo": "ciudad"},
  {"id": "san-antonio", "nombre": "San Antonio", "comuna": "San Antonio", "region": "Valparaíso", "lat": -33.59, "lon": -71.63, "tipo": "ciudad"},
- {"id": "rapa-nui", "nombre": "Hanga Roa (Rapa Nui)", "comuna": "Isla de Pascua", "region": "Valparaíso", "lat": -27.15, "lon": -109.44, "tipo": "ciudad"},
+ {"id": "rapa-nui", "nombre": "Hanga Roa (Rapa Nui)", "comuna": "Isla de Pascua", "region": "Valparaíso", "lat": -27.15, "lon": -109.44, "tipo": "ciudad", "tz": "Pacific/Easter"},
  {"id": "pichilemu", "nombre": "Pichilemu", "comuna": "Pichilemu", "region": "O'Higgins", "lat": -34.39, "lon": -72.02, "tipo": "ciudad"},
  {"id": "constitucion", "nombre": "Constitución", "comuna": "Constitución", "region": "Maule", "lat": -35.33, "lon": -72.43, "tipo": "ciudad"},
  {"id": "pelluhue", "nombre": "Pelluhue y Curanipe", "comuna": "Pelluhue", "region": "Maule", "lat": -35.82, "lon": -72.58, "tipo": "ciudad"},
@@ -50,6 +50,6 @@
  {"id": "melinka", "nombre": "Melinka", "comuna": "Guaitecas", "region": "Aysén", "lat": -43.9, "lon": -73.75, "tipo": "ciudad"},
  {"id": "puerto-cisnes", "nombre": "Puerto Cisnes", "comuna": "Cisnes", "region": "Aysén", "lat": -44.73, "lon": -72.7, "tipo": "ciudad"},
  {"id": "puerto-aysen", "nombre": "Puerto Aysén y Chacabuco", "comuna": "Aysén", "region": "Aysén", "lat": -45.47, "lon": -72.83, "tipo": "ciudad"},
- {"id": "punta-arenas", "nombre": "Punta Arenas", "comuna": "Punta Arenas", "region": "Magallanes", "lat": -53.16, "lon": -70.9, "tipo": "ciudad"},
- {"id": "porvenir", "nombre": "Porvenir", "comuna": "Porvenir", "region": "Magallanes", "lat": -53.29, "lon": -70.37, "tipo": "ciudad"}
+ {"id": "punta-arenas", "nombre": "Punta Arenas", "comuna": "Punta Arenas", "region": "Magallanes", "lat": -53.16, "lon": -70.9, "tipo": "ciudad", "tz": "America/Punta_Arenas"},
+ {"id": "porvenir", "nombre": "Porvenir", "comuna": "Porvenir", "region": "Magallanes", "lat": -53.29, "lon": -70.37, "tipo": "ciudad", "tz": "America/Punta_Arenas"}
 ]
