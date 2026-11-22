@@ -1,0 +1,79 @@
+name: APK Android
+
+# Empaqueta la app web en un APK (Capacitor), lo firma y lo publica como
+# release: https://github.com/MistaJ4Z/marea-nao/releases/latest/download/marea-nao.apk
+on:
+  push:
+    branches: [main]
+    paths: ['index.html', 'lugares.js', 'marea-calc.js', 'icon-*.png', 'qr.svg', 'android/**', '.github/workflows/apk.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERSION: 2.${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+
+      - name: Archivos web
+        run: |
+          mkdir -p build/www
+          cp index.html lugares.js marea-calc.js qr.svg icon-*.png manifest.webmanifest build/www/
+          cp android/capacitor.config.json build/
+
+      - name: Proyecto Android (Capacitor)
+        working-directory: build
+        run: |
+          npm init -y > /dev/null
+          npm i --no-audit --no-fund @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          npx cap add android
+          npx cap sync android
+          # ícono: se usa el PNG de la app en todas las densidades (sin ícono adaptativo)
+          res=android/app/src/main/res
+          rm -rf $res/mipmap-anydpi-v26
+          for d in $res/mipmap-*; do
+            cp ../icon-192.png $d/ic_launcher.png
+            cp ../icon-192.png $d/ic_launcher_round.png
+            rm -f $d/ic_launcher_foreground.png
+          done
+          sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/; s/versionName .*/versionName \"$VERSION\"/" android/app/build.gradle
+          sed -i 's/<string name="app_name">.*</<string name="app_name">Marea Nao</; s/<string name="title_activity_main">.*</<string name="title_activity_main">Marea Nao</' $res/values/strings.xml
+
+      - name: Compilar
+        working-directory: build/android
+        run: ./gradlew --no-daemon -q assembleRelease
+
+      - name: Firmar
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+        run: |
+          [ -n "$KS" ] || { echo "::error::Falta el secreto ANDROID_KEYSTORE"; exit 1; }
+          echo "$KS" | base64 -d > ks.p12
+          bt=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          $bt/zipalign -f -p 4 build/android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          $bt/apksigner sign --ks ks.p12 --ks-type PKCS12 --ks-key-alias marea --ks-pass env:KS_PASS --out marea-nao.apk aligned.apk
+          $bt/apksigner verify --print-certs marea-nao.apk | head -3
+          rm ks.p12
+
+      - name: Publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$VERSION" marea-nao.apk --latest --title "Marea Nao $VERSION" \
+            --notes "APK para Android. Página de descarga: https://mistaj4z.github.io/marea-nao/descargar.html"

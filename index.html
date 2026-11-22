@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f3efe6">
-<title>Marea · Rolecha ⇄ Isla Nao</title>
+<title>Marea · Isla Nao</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,31 +13,98 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d5f7a'/%3E%3Cpath d='M3 19c4-5 7-5 10 0s6 5 10 0 5-4 6-3v13H3z' fill='%237fd0dc'/%3E%3C/svg%3E">
 <style>
   :root{
-    --bg:#f3efe6; --card:#fbf9f4; --ink:#16303a; --muted:#6b7f86; --line:#e0d9ca;
+    --bg:#f3efe6; --card:#fbf9f4; --ink:#16303a; --muted:#647a82; --line:#e0d9ca; --grid:#ebe5d8;
     --open:#23805a; --open-bg:#dff1e6; --shut:#b8452f; --shut-bg:#f7e1da; --warn:#a86a00; --warn-bg:#f8ebcb;
-    --sea:#2b86a0; --amber:#e3a52b;
+    --sea:#2b86a0; --amber:#d99a1e; --night:rgba(30,50,90,.07);
     --sky1:#8fc7e3; --sky2:#e4f1ee; --orb:#fff6cf; --tint:rgba(0,0,0,0); --stars:0;
   }
   body[data-sky="dawn"]{ --sky1:#7aa6cf; --sky2:#f6cfa6; --orb:#ffe2a8; --tint:rgba(240,150,80,.10); }
   body[data-sky="dusk"]{ --sky1:#4b5f95; --sky2:#f0a777; --orb:#ffc38a; --tint:rgba(150,70,60,.18); }
   body[data-sky="night"]{
-    --bg:#0e1a22; --card:#15252f; --ink:#e6eef0; --muted:#8aa0a8; --line:#24394a;
+    --bg:#0e1a22; --card:#15252f; --ink:#e6eef0; --muted:#8fa5ad; --line:#24394a; --grid:#1d3140;
     --open:#5fd09a; --open-bg:#143a2c; --shut:#f08a72; --shut-bg:#43201a; --warn:#f0c060; --warn-bg:#3d3013;
-    --sea:#6cc3d8;
+    --sea:#6cc3d8; --amber:#f0b84a; --night:rgba(0,0,0,.22);
     --sky1:#0a1430; --sky2:#243a5c; --orb:#e9edf5; --tint:rgba(8,16,44,.50); --stars:1;
   }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
   body{margin:0;background:var(--bg);color:var(--ink);
     font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    font-variant-numeric:tabular-nums; transition:background .6s,color .6s}
-  main{max-width:860px;margin:0 auto;padding:20px 16px 40px}
+    font-variant-numeric:tabular-nums; transition:background .6s,color .6s; -webkit-tap-highlight-color:transparent}
+  main{max-width:900px;margin:0 auto;padding:18px 16px calc(96px + env(safe-area-inset-bottom))}
   header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
-  .place{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
-  .clock{font-size:13px;color:var(--muted)}
+  .place{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:650}
+  .clock{font-size:13px;color:var(--muted);text-align:right}
+  h1{margin:0;font-size:clamp(32px,7.5vw,50px);line-height:1.02;letter-spacing:-.02em;font-weight:750}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:14px;transition:background .6s,border-color .6s}
+  .card h2{margin:0 0 6px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:650;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  .card h2 span{letter-spacing:0;text-transform:none;font-weight:500}
+  .pad{padding:14px 16px 16px}
+  .up{color:var(--sea)} .dn{color:var(--amber)}
+  button,.btnlike{font:inherit;font-size:15px;font-weight:600;color:var(--ink);background:transparent;border:1px solid var(--line);
+    border-radius:12px;padding:10px 14px;cursor:pointer;min-height:44px}
+  button:hover{border-color:var(--muted)}
+  button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
+  a{color:var(--sea);font-weight:600}
+  a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;font-size:15px;font-weight:650;color:#fff;background:var(--sea);border-radius:12px;padding:10px 18px;text-decoration:none}
+  body[data-sky="night"] a.btn{color:#0e1a22}
+  .note{margin:0;font-size:13px;color:var(--muted)}
+  .err{color:var(--shut)}
+  svg{display:block}
+  svg text{font-family:inherit}
 
-  .status{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px;margin-bottom:16px}
-  .status h1{margin:0;font-size:clamp(34px,7.5vw,54px);line-height:1.02;letter-spacing:-.02em;font-weight:750}
+  /* ---- ahora (mareas) ---- */
+  .now{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 24px}
+  .now .lbl{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:650;margin-bottom:6px}
+  .now .trend{font-size:17px;color:var(--muted);margin-top:8px}
+  .now .trend b{color:var(--ink)}
+  .nextx{text-align:right;font-size:16px;color:var(--muted)}
+  .nextx b{display:block;font-size:24px;color:var(--ink);font-weight:700;letter-spacing:-.01em}
+
+  /* ---- selector de días ---- */
+  .daynav{display:flex;align-items:center;gap:8px;padding:14px 12px 4px}
+  .daynav .t{flex:1;text-align:center;min-width:0}
+  .daynav .t b{display:block;font-size:19px;font-weight:700;line-height:1.25;text-wrap:balance}
+  .readout span:last-child{white-space:nowrap}
+  @media(max-width:520px){ .nextx{text-align:left} .daynav .t b{font-size:17.5px} }
+  .daynav .t b::first-letter,.week .d::first-letter{text-transform:uppercase}
+  .daynav .t small{font-size:13px;color:var(--muted)}
+  .daynav button{width:46px;padding:0;font-size:22px;line-height:1}
+  .strip{display:flex;gap:6px;overflow-x:auto;padding:8px 12px 10px;scrollbar-width:none;scroll-snap-type:x proximity}
+  .strip::-webkit-scrollbar{display:none}
+  .strip button{flex:0 0 auto;width:54px;min-height:0;padding:7px 0 6px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:1px;scroll-snap-align:start}
+  .strip button small{font-size:12px;color:var(--muted);font-weight:600;text-transform:capitalize}
+  .strip button b{font-size:18px;font-weight:700}
+  .strip button i{display:block;width:26px;height:4px;border-radius:2px;background:var(--line);margin-top:3px;overflow:hidden}
+  .strip button i::after{content:"";display:block;height:100%;width:var(--r);background:var(--sea)}
+  .strip button[aria-current="date"]{background:var(--ink);border-color:var(--ink)}
+  .strip button[aria-current="date"] small,.strip button[aria-current="date"] b{color:var(--card)}
+  .strip .cal{width:auto;padding:7px 12px;justify-content:center;position:relative}
+  .strip .cal input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+
+  /* ---- gráfico ---- */
+  .readout{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:2px 16px 0;min-height:30px;font-size:15px;color:var(--muted)}
+  .readout b{color:var(--ink);font-size:18px}
+  .chart{touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:crosshair}
+  .src{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 16px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--line);color:var(--ink);vertical-align:2px;margin-left:6px;letter-spacing:0;text-transform:none}
+  .tag.viva{background:#d7ecf2;color:#17617a} .tag.muerta{background:var(--warn-bg);color:var(--warn)}
+  body[data-sky="night"] .tag.viva{background:#183d4a;color:#8fd6e8}
+
+  /* ---- tabla semanal ---- */
+  .week{list-style:none;margin:0;padding:0}
+  .week li{display:grid;grid-template-columns:78px 1fr;gap:4px 10px;padding:10px 16px;border-top:1px solid var(--line);cursor:pointer;align-items:center}
+  .week li:hover{background:color-mix(in srgb,var(--line) 35%,transparent)}
+  .week li[aria-current="date"]{background:color-mix(in srgb,var(--sea) 10%,transparent)}
+  .week .d{font-weight:700;line-height:1.2}
+  .week .d small{display:block;font-weight:500;color:var(--muted);font-size:12.5px}
+  .week .x{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 8px}
+  .week .x span{white-space:nowrap;font-size:14.5px}
+  .week .x span small{color:var(--muted);font-size:12.5px;margin-left:3px}
+  @media(max-width:520px){ .week .x{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+  /* ---- paso ---- */
+  .status{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px}
   .status p{margin:8px 0 0;font-size:17px;color:var(--muted)}
   .status p b{color:var(--ink);font-weight:650}
   .pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:650;padding:5px 12px;border-radius:99px;margin-bottom:10px}
@@ -50,586 +117,752 @@
   .level{text-align:right;margin-left:auto}
   .level .num{font-size:clamp(30px,6vw,42px);font-weight:700;letter-spacing:-.02em;line-height:1}
   .level .trend{font-size:14px;color:var(--muted);margin-top:6px}
-
-  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:background .6s,border-color .6s}
-  .scene svg,.chart svg{display:block;width:100%;height:auto}
-  .chart{margin-top:14px;padding:14px 0 4px;touch-action:pan-y}
-  .card h2{margin:0 16px 6px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;gap:8px}
-  .card h2 span{letter-spacing:0;text-transform:none;font-weight:500}
+  .scene svg{width:100%;height:auto}
+  .scene .note{padding:9px 16px 11px;border-top:1px solid var(--line);font-size:12.5px}
   .key{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--open);opacity:.45;margin-right:5px;vertical-align:-1px}
-
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-  @media(max-width:620px){.cols{grid-template-columns:1fr}}
-  .list{padding:14px 0 6px}
   .list ul{list-style:none;margin:0;padding:0}
-  .list li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 16px;border-top:1px solid var(--line)}
-  .list li small{color:var(--muted);font-size:13px}
+  .list li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 16px;border-top:1px solid var(--line)}
   .list li .r{text-align:right;color:var(--muted);font-size:14px;white-space:nowrap}
   .list li b{font-weight:650}
-  .list .empty{color:var(--muted);padding:10px 16px;font-size:14px}
-  .up{color:var(--sea)} .dn{color:var(--amber)}
-
-  .cal{margin-top:14px;padding:14px 16px 16px}
-  .cal h2{margin:0 0 4px}
-  .cal p{margin:0 0 12px;color:var(--muted);font-size:14px;max-width:62ch}
+  .list .empty{color:var(--muted);font-size:14px}
+  .list h2{padding:14px 16px 4px;margin:0}
   .row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+  .cal2 p{margin:0 0 12px;color:var(--muted);font-size:14.5px;max-width:62ch}
   input[type=range]{flex:1 1 220px;accent-color:var(--amber);height:28px}
   output{font-weight:700;min-width:74px;text-align:right}
-  button{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:transparent;border:1px solid var(--line);
-    border-radius:10px;padding:9px 14px;cursor:pointer}
-  button:hover{border-color:var(--muted)}
-  button:focus-visible,input:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
-  .note{margin:0;padding:9px 16px 11px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
-  .cal a{color:var(--sea);font-weight:600}
-  a.btn{font-size:14px;font-weight:650;color:#fff;background:var(--sea);border-radius:10px;padding:10px 16px;text-decoration:none}
-  body[data-sky="night"] a.btn{color:#0e1a22}
-  .cal code{font:600 13px ui-monospace,Consolas,monospace;background:var(--line);padding:2px 6px;border-radius:6px;word-break:break-all}
+  input[type=text]{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-height:44px;flex:1 1 200px}
+  .cal2 code{font:600 13px ui-monospace,Consolas,monospace;background:var(--line);padding:2px 6px;border-radius:6px;word-break:break-all}
   #avMsg{font-size:14px;color:var(--ink);font-weight:600;margin:0}
   #avMsg:empty{display:none}
   .steps{margin:0 0 12px;padding-left:22px;font-size:15px}
   .steps li{margin:0 0 10px;padding-left:2px}
-  .steps button{padding:6px 12px;margin-left:4px}
+  .steps button{padding:6px 12px;margin-left:4px;min-height:36px}
   .steps a{white-space:nowrap}
   #avSub{display:block;white-space:normal;font-weight:500;font-size:13.5px;margin-top:4px}
-  .cal p.last{margin:12px 0 0}
-  footer{margin-top:18px;color:var(--muted);font-size:12.5px;line-height:1.5}
-  .err{color:var(--shut)}
-  svg text{font-family:inherit}
+  .cal2 p.last{margin:12px 0 0}
+  .trial{font-size:12.5px;font-weight:650;color:var(--open);background:var(--open-bg);border-radius:99px;padding:2px 9px;letter-spacing:0;text-transform:none}
+
+  /* ---- más ---- */
+  .share{display:grid;grid-template-columns:auto 1fr;gap:16px 20px;align-items:center}
+  .share img{width:168px;height:168px;background:#fff;border-radius:14px;padding:10px;display:block}
+  .share .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  @media(max-width:520px){ .share{grid-template-columns:1fr;justify-items:center;text-align:center} .share .acts{justify-content:center} }
+  .about p{margin:0 0 10px;font-size:14.5px;color:var(--muted);max-width:66ch}
+  .about p b{color:var(--ink)}
+
+  /* ---- pestañas ---- */
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;justify-content:center;background:color-mix(in srgb,var(--card) 92%,transparent);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+  nav.tabs button{flex:1;max-width:220px;border:0;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;font-size:12.5px;color:var(--muted);min-height:52px}
+  nav.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  nav.tabs button[aria-selected="true"]{color:var(--ink);background:color-mix(in srgb,var(--sea) 14%,transparent)}
+  [role=tabpanel][hidden]{display:none}
 </style>
 </head>
 <body data-sky="day">
 <main>
   <header>
-    <div class="place">Rolecha ⇄ Isla Nao</div>
+    <div class="place" id="place">Isla Nao</div>
     <div class="clock" id="clock">—</div>
   </header>
 
-  <section class="status" id="status" data-state="shut" aria-live="polite">
-    <div>
-      <div class="pill"><i></i><span id="pill">Cargando marea…</span></div>
-      <h1 id="title">—</h1>
-      <p id="sub">&nbsp;</p>
+  <!-- ================= MAREAS ================= -->
+  <section role="tabpanel" id="p-mareas" aria-labelledby="t-mareas">
+    <div class="now" aria-live="polite">
+      <div>
+        <div class="lbl">Marea ahora</div>
+        <h1 id="nNum">—</h1>
+        <div class="trend" id="nTrend">&nbsp;</div>
+      </div>
+      <div class="nextx" id="nNext"></div>
     </div>
-    <div class="level">
-      <div class="num" id="num">—</div>
-      <div class="trend" id="trend">&nbsp;</div>
+
+    <div class="card">
+      <div class="daybar"></div>
+      <div class="readout" id="roM"></div>
+      <svg class="chart" id="chM" role="img" aria-label="Curva de marea del día elegido"></svg>
+      <div class="src" id="srcM"></div>
+    </div>
+
+    <div class="card">
+      <h2 class="pad" style="padding-bottom:4px;margin:0">Tabla de 7 días <span id="weekFrom"></span></h2>
+      <ul class="week" id="week"></ul>
     </div>
   </section>
 
-  <div class="card scene">
-    <svg id="scene" viewBox="0 0 800 300" role="img" aria-label="Vista del paso entre Rolecha e Isla Nao con el nivel actual del agua">
-      <defs>
-        <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" style="stop-color:var(--sky1)"/><stop offset=".6" style="stop-color:var(--sky2)"/>
-        </linearGradient>
-        <linearGradient id="gSea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#58b6c9" stop-opacity=".68"/><stop offset="1" stop-color="#14506b" stop-opacity=".9"/>
-        </linearGradient>
-        <linearGradient id="gLand" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="300">
-          <stop offset="0" stop-color="#5f8f5c"/><stop id="ls1" offset=".2" stop-color="#d6c294"/><stop offset="1" stop-color="#9c8a69"/>
-        </linearGradient>
-      </defs>
-      <rect width="800" height="300" fill="url(#gSky)"/>
-      <g fill="#fff" style="opacity:var(--stars)">
-        <circle cx="120" cy="24" r="1.4"/><circle cx="200" cy="58" r="1"/><circle cx="330" cy="18" r="1.3"/>
-        <circle cx="400" cy="50" r="1.1"/><circle cx="690" cy="40" r="1.1"/><circle cx="160" cy="80" r="1"/><circle cx="710" cy="16" r="1.3"/>
-      </g>
-      <circle cx="255" cy="38" r="15" style="fill:var(--orb)"/>
-      <path id="land" fill="url(#gLand)"/>
-      <g id="deco"></g>
-      <text id="dim" x="255" text-anchor="middle" font-size="12" font-weight="600" fill="#5d5138" opacity=".8"></text>
-      <path id="water" fill="url(#gSea)"/>
-      <path id="surf" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.5"/>
-      <rect width="800" height="300" style="fill:var(--tint)" pointer-events="none"/>
-      <g id="staff"></g>
-      <g font-weight="650" fill="#fff" stroke="rgba(10,35,48,.6)" stroke-width="3" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">
-        <text id="barLabel" x="255" font-size="15"></text>
-        <text id="lblA" font-size="14" text-anchor="start">Rolecha</text>
-        <text id="lblB" font-size="14">Isla Nao</text>
-      </g>
-    </svg>
-    <p class="note">Distancias a escala aproximada: el paso mide unos 500–600 m y la isla unos 450 m de ancho y 30 m de alto. La altura de la marea está ampliada para poder leerla.</p>
-  </div>
+  <!-- ================= PASO ================= -->
+  <section role="tabpanel" id="p-paso" aria-labelledby="t-paso" hidden>
+    <section class="status" id="status" data-state="shut" aria-live="polite">
+      <div>
+        <div class="pill"><i></i><span id="pill">Cargando marea…</span></div>
+        <h1 id="title">—</h1>
+        <p id="sub">&nbsp;</p>
+      </div>
+      <div class="level">
+        <div class="num" id="num">—</div>
+        <div class="trend" id="trend">&nbsp;</div>
+      </div>
+    </section>
 
-  <div class="card chart">
-    <h2>Próximas horas <span><i class="key"></i>se puede cruzar</span></h2>
-    <svg id="chart" viewBox="0 0 800 230" role="img" aria-label="Curva de marea de las próximas 36 horas"></svg>
-  </div>
-
-  <div class="cols">
-    <div class="card list"><h2>Ventanas para cruzar</h2><ul id="wins"></ul></div>
-    <div class="card list"><h2>Pleamares y bajamares</h2><ul id="tides"></ul></div>
-  </div>
-
-  <div class="card cal">
-    <h2>Límite de cruce</h2>
-    <p>Es la altura de marea bajo la cual el paso queda seco. Parte como una estimación: la próxima vez que veas que el paso recién se despeja (o recién se tapa), pulsa el botón y la app queda calibrada.</p>
-    <div class="row">
-      <input id="thr" type="range" step="0.05" aria-label="Límite de cruce en metros">
-      <output id="thrOut">—</output>
-      <button id="calib" type="button">Usar el nivel de ahora</button>
+    <div class="card scene">
+      <svg id="scene" viewBox="0 0 800 300" role="img" aria-label="Vista del paso con el nivel actual del agua">
+        <defs>
+          <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color:var(--sky1)"/><stop offset=".6" style="stop-color:var(--sky2)"/>
+          </linearGradient>
+          <linearGradient id="gSea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#58b6c9" stop-opacity=".68"/><stop offset="1" stop-color="#14506b" stop-opacity=".9"/>
+          </linearGradient>
+          <linearGradient id="gLand" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="300">
+            <stop offset="0" stop-color="#5f8f5c"/><stop id="ls1" offset=".2" stop-color="#d6c294"/><stop offset="1" stop-color="#9c8a69"/>
+          </linearGradient>
+        </defs>
+        <rect width="800" height="300" fill="url(#gSky)"/>
+        <g fill="#fff" style="opacity:var(--stars)">
+          <circle cx="120" cy="24" r="1.4"/><circle cx="200" cy="58" r="1"/><circle cx="330" cy="18" r="1.3"/>
+          <circle cx="400" cy="50" r="1.1"/><circle cx="690" cy="40" r="1.1"/><circle cx="160" cy="80" r="1"/><circle cx="710" cy="16" r="1.3"/>
+        </g>
+        <circle cx="255" cy="38" r="15" style="fill:var(--orb)"/>
+        <path id="land" fill="url(#gLand)"/>
+        <g id="deco"></g>
+        <path id="water" fill="url(#gSea)"/>
+        <path id="surf" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.5"/>
+        <rect width="800" height="300" style="fill:var(--tint)" pointer-events="none"/>
+        <g id="staff"></g>
+        <g font-weight="650" fill="#fff" stroke="rgba(10,35,48,.6)" stroke-width="3" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">
+          <text id="barLabel" x="255" font-size="15"></text>
+          <text id="lblA" font-size="14" text-anchor="start"></text>
+          <text id="lblB" font-size="14"></text>
+        </g>
+      </svg>
+      <p class="note">Distancias a escala aproximada: el paso mide unos 500–600 m y la isla unos 450 m de ancho y 30 m de alto. La altura de la marea está ampliada para poder leerla.</p>
     </div>
-  </div>
 
-  <div class="card cal">
-    <h2>Avisos en el teléfono</h2>
-    <p id="avOff">Para activar los avisos, abre la app una vez con tu enlace personal (el del código QR).</p>
-    <div id="avOn" hidden>
-      <p>Llegan por <b>ntfy</b>, una app gratuita de notificaciones. Se configura una sola vez:</p>
-      <ol class="steps">
-        <li>Instala ntfy:
-          <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> ·
-          <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>.</li>
-        <li>Copia el nombre de tu canal: <code id="avCanal"></code>
-          <button id="avCopy" type="button">Copiar</button></li>
-        <li>Abre ntfy, toca el botón <b>+</b>, pega el nombre en "tema" y toca <b>Suscribirse</b>. Acepta el permiso de notificaciones si lo pide.
-          <a id="avSub" href="#">En Android también puedes probar abrirlo directo.</a></li>
-        <li>Vuelve aquí y prueba: <button id="avTest" type="button">Enviar aviso de prueba</button></li>
-      </ol>
-      <p id="avMsg" role="status"></p>
-      <p class="last" id="avState"></p>
+    <div class="card">
+      <div class="daybar"></div>
+      <div class="readout" id="roP"></div>
+      <svg class="chart" id="chP" role="img" aria-label="Curva de marea del día con las ventanas para cruzar"></svg>
+      <div class="src"><span><i class="key"></i>se puede cruzar · línea punteada: límite del paso</span></div>
     </div>
-  </div>
 
-  <footer id="foot">Cargando…</footer>
+    <div class="card list">
+      <h2>Ventanas para cruzar <span id="winDay"></span></h2>
+      <ul id="wins"></ul>
+    </div>
+
+    <div class="card cal2 pad">
+      <h2>Límite de cruce</h2>
+      <p>Es la altura de marea bajo la cual el paso queda seco. Si ves que el paso recién se despeja (o recién se tapa), pulsa el botón y la app queda calibrada.</p>
+      <div class="row">
+        <input id="thr" type="range" step="0.05" aria-label="Límite de cruce en metros">
+        <output id="thrOut">—</output>
+        <button id="calib" type="button">Usar el nivel de ahora</button>
+      </div>
+    </div>
+
+    <div class="card cal2 pad">
+      <h2>Avisos en el teléfono</h2>
+      <div id="avOff">
+        <p>Los avisos llegan por <b>ntfy</b> a un canal personal. Si tienes uno, pégalo aquí:</p>
+        <div class="row"><input id="avIn" type="text" placeholder="nombre del canal" autocomplete="off" autocapitalize="off" spellcheck="false"><button id="avSet" type="button">Guardar</button></div>
+      </div>
+      <div id="avOn" hidden>
+        <p>Llegan por <b>ntfy</b>, una app gratuita de notificaciones. Se configura una sola vez:</p>
+        <ol class="steps">
+          <li>Instala ntfy:
+            <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> ·
+            <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>.</li>
+          <li>Copia el nombre de tu canal: <code id="avCanal"></code>
+            <button id="avCopy" type="button">Copiar</button></li>
+          <li>Abre ntfy, toca el botón <b>+</b>, pega el nombre en "tema" y toca <b>Suscribirse</b>. Acepta el permiso de notificaciones si lo pide.
+            <a id="avSub" href="#">En Android también puedes probar abrirlo directo.</a></li>
+          <li>Vuelve aquí y prueba: <button id="avTest" type="button">Enviar aviso de prueba</button></li>
+        </ol>
+        <p id="avMsg" role="status"></p>
+        <p class="last" id="avState"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MÁS ================= -->
+  <section role="tabpanel" id="p-mas" aria-labelledby="t-mas" hidden>
+    <h1>Compartir</h1>
+    <div class="card pad">
+      <div class="share">
+        <img src="qr.svg" alt="Código QR para descargar la app" width="168" height="168">
+        <div>
+          <h2>Pásale la app a alguien</h2>
+          <p class="note" style="font-size:15px">Que escanee el código con la cámara del teléfono. En Android se descarga la app; en iPhone se abre la versión web, que se puede agregar a la pantalla de inicio.</p>
+          <div class="acts">
+            <button id="shareBtn" type="button">Compartir enlace</button>
+            <a class="btn" id="apkBtn" href="https://github.com/MistaJ4Z/marea-nao/releases/latest/download/marea-nao.apk">Descargar app Android</a>
+          </div>
+          <p class="note" id="shareMsg" style="margin-top:8px"></p>
+        </div>
+      </div>
+    </div>
+    <div class="card pad about">
+      <h2>Cómo se calcula la marea</h2>
+      <p>Para los próximos <b>10 días</b> se usa el pronóstico del modelo oceánico de Open-Meteo, descargado al abrir la app.</p>
+      <p>Para cualquier otra fecha, la marea se <b>calcula</b> con sus componentes astronómicas (la Luna y el Sol), igual que las tablas oficiales. Las constantes se obtuvieron de un año completo de datos de este punto. Comparado con el pronóstico, acierta la hora de pleamares y bajamares con unos <b>±3 minutos</b> y la altura con unos <b>±5 cm</b>. Funciona sin internet.</p>
+      <p>El viento y la presión pueden mover la marea real unos centímetros o minutos. No es la tabla oficial del SHOA: cruza con margen y mirando el agua.</p>
+      <p id="foot" class="note"></p>
+    </div>
+  </section>
 </main>
 
-<script>
-(() => {
-  const LAT = -41.9085, LON = -72.8827, TZ = 'America/Santiago';
-  const API = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}` +
-              `&hourly=sea_level_height_msl&timeformat=unixtime&timezone=GMT&past_days=1&forecast_days=7`;
-  const H = 3600e3, MIN = 60e3, $ = id => document.getElementById(id);
-  const store = {
-    get(k){ try { return localStorage.getItem(k); } catch { return null; } },
-    set(k, v){ try { localStorage.setItem(k, v); } catch {} }
-  };
+<nav class="tabs" role="tablist">
+  <button role="tab" id="t-mareas" aria-controls="p-mareas" aria-selected="true">
+    <svg viewBox="0 0 24 24"><path d="M2 12c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 6-1.5"/><path d="M2 18c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 6-1.5"/><path d="M12 3v4"/></svg>Mareas</button>
+  <button role="tab" id="t-paso" aria-controls="p-paso" aria-selected="false">
+    <svg viewBox="0 0 24 24"><path d="M3 19h18"/><path d="M14 19c0-5 2-8 5-8"/><path d="M3 15c3-1 5-1 8 0"/><circle cx="7" cy="8" r="2"/></svg><span id="tPasoLbl">Paso</span></button>
+  <button role="tab" id="t-mas" aria-controls="p-mas" aria-selected="false">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>Compartir</button>
+</nav>
 
-  let D = null;            // { t0, v[], fetched }
-  let S = null, EXT = [];  // muestras por minuto, extremos
-  let CROSS = [];          // cruces del límite: { t, opens }
-  let lim = 3;
-  let thr = parseFloat(store.get('mareas.umbral')); if (!isFinite(thr)) thr = -0.5;
-  let fetchErr = null;
+<script src="lugares.js"></script>
+<script type="module">
+import { predictor } from './marea-calc.js';
 
-  /* ---------- formato ---------- */
-  const fTime = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-  const fKey  = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
-  const fDow  = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'short' });
-  const fHour = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hourCycle: 'h23' });
-  const fLong = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' });
-  const hhmm = t => fTime.format(t);
-  const day = t => {
-    const k = fKey.format(t), now = Date.now();
-    if (k === fKey.format(now)) return 'hoy';
-    if (k === fKey.format(now + 24 * H)) return 'mañana';
-    return fDow.format(t).replace('.', '');
-  };
-  const when = t => { const d = day(t); return d === 'hoy' ? hhmm(t) : `${d} ${hhmm(t)}`; };
-  const fmtH = (h, d = 2) => (h < 0 ? '−' : '+') + Math.abs(h).toFixed(d).replace('.', ',') + ' m';
-  const fmtCm = m => Math.round(Math.abs(m) * 100) + ' cm';
-  const dur = ms => {
-    const m = Math.max(0, Math.round(ms / MIN)), h = Math.floor(m / 60);
-    return h ? `${h} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`;
-  };
-  const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const TZ = 'America/Santiago', H = 3600e3, MIN = 60e3, DAY = 24 * H;
+const SITIO = 'https://mistaj4z.github.io/marea-nao/';
+const DESCARGA = SITIO + 'descargar.html';
+const APK = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+// Ventanas de cruce en días futuros: gratis durante la prueba. Para cobrarlas más adelante, poner en false.
+const PRUEBA_GRATIS = true;
 
-  /* ---------- datos ---------- */
-  function hAt(ms) {
-    const v = D.v;
-    let x = (ms - D.t0) / H; x = Math.max(0, Math.min(v.length - 1.0001, x));
-    const i = Math.floor(x), f = x - i;
-    const p0 = v[Math.max(0, i - 1)], p1 = v[i], p2 = v[i + 1], p3 = v[Math.min(v.length - 1, i + 2)];
-    return .5 * (2 * p1 + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f * f + (-p0 + 3 * p1 - 3 * p2 + p3) * f * f * f);
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch {} }
+};
+
+/* ---------- lugar ---------- */
+const LUG = self.LUGARES || [];
+let P = LUG.find(l => l.id === store.get('mareas.lugar')) || LUG[0];
+const K = k => `mareas.${k}.${P.id}`;
+// migración desde la versión anterior (un solo lugar)
+if (P.id === 'nao' && store.get('mareas.umbral') != null && store.get(K('umbral')) == null) {
+  store.set(K('umbral'), store.get('mareas.umbral'));
+  if (store.get('mareas.umbralT')) store.set(K('umbralT'), store.get('mareas.umbralT'));
+}
+const harm = predictor(P.armonicos);
+let OFF = parseFloat(store.get(K('off'))) || 0;     // desfase pronóstico − cálculo, medido en la última descarga
+let D = null, fetchErr = null, gen = 0;               // D: pronóstico { t0, v[], fetched }
+let thr = parseFloat(store.get(K('umbral')));
+if (!isFinite(thr)) thr = P.paso ? P.paso.umbral : 0;
+
+// escala vertical fija para el lugar (permite comparar días)
+let lim = 3;
+{ let m = 0; const t0 = Date.now(); for (let i = 0; i < 24 * 400; i += 1) m = Math.max(m, Math.abs(harm(t0 + i * H) + OFF)); lim = Math.max(2, Math.ceil(m + 0.3)); }
+const A = P.armonicos, VIVA = 2 * (A.M2[0] + .6 * A.S2[0]), MUERTA = 2 * (A.M2[0] - .6 * A.S2[0]);
+
+/* ---------- formato y fechas ---------- */
+const fTime = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+const fKey  = new Intl.DateTimeFormat('en-CA', { timeZone: TZ });
+const fDow  = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'short' });
+const fHour = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hourCycle: 'h23' });
+const fLong = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' });
+const fLongY = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const fShort = new Intl.DateTimeFormat('es-CL', { timeZone: TZ, day: 'numeric', month: 'short' });
+const fParts = new Intl.DateTimeFormat('en-US', { timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+const hhmm = t => fTime.format(t);
+const keyOf = t => fKey.format(t);
+const today = () => keyOf(Date.now());
+const addDays = (k, n) => { const [y, m, d] = k.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); };
+const diffDays = (a, b) => { const p = k => { const [y, m, d] = k.split('-').map(Number); return Date.UTC(y, m - 1, d); }; return Math.round((p(b) - p(a)) / DAY); };
+function wall(t) { const o = {}; for (const p of fParts.formatToParts(t)) o[p.type] = +p.value; return Date.UTC(o.year, o.month - 1, o.day, o.hour % 24, o.minute, o.second); }
+const startCache = new Map();
+function dayStart(k) {
+  if (startCache.has(k)) return startCache.get(k);
+  const [y, m, d] = k.split('-').map(Number), base = Date.UTC(y, m - 1, d);
+  let t = base; for (let i = 0; i < 3; i++) t = base - (wall(t) - t);
+  startCache.set(k, t); return t;
+}
+const dayEnd = k => dayStart(addDays(k, 1));
+const dayName = k => {
+  const n = diffDays(today(), k);
+  if (n === 0) return 'hoy'; if (n === 1) return 'mañana'; if (n === -1) return 'ayer';
+  return fDow.format(dayStart(k) + 12 * H).replace('.', '');
+};
+const when = t => { const d = dayName(keyOf(t)); return d === 'hoy' ? hhmm(t) : `${d} ${hhmm(t)}`; };
+const fmtH = (h, d = 2) => (h < 0 ? '−' : '+') + Math.abs(h).toFixed(d).replace('.', ',') + ' m';
+const fmtCm = m => Math.round(Math.abs(m) * 100) + ' cm';
+const dur = ms => { const m = Math.max(0, Math.round(ms / MIN)), h = Math.floor(m / 60); return h ? `${h} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ---------- marea: pronóstico cuando lo hay, cálculo astronómico siempre ---------- */
+const tEnd = () => D.t0 + (D.v.length - 1) * H;
+function fc(ms) {
+  const v = D.v; let x = (ms - D.t0) / H; x = Math.max(0, Math.min(v.length - 1.0001, x));
+  const i = Math.floor(x), f = x - i;
+  const p0 = v[Math.max(0, i - 1)], p1 = v[i], p2 = v[i + 1], p3 = v[Math.min(v.length - 1, i + 2)];
+  return .5 * (2 * p1 + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f * f + (-p0 + 3 * p1 - 3 * p2 + p3) * f * f * f);
+}
+function tide(t) {
+  const c = harm(t) + OFF;
+  if (!D || t < D.t0 || t > tEnd()) return c;
+  const w = Math.min(1, (t - D.t0) / (6 * H), (tEnd() - t) / (6 * H));   // transición suave en los bordes
+  return c + (fc(t) - c) * w;
+}
+const isForecast = k => D && dayStart(k) >= D.t0 && dayEnd(k) <= tEnd();
+
+const extCache = new Map();
+function extremes(k) {                  // pleamares y bajamares del día
+  const ck = gen + k; if (extCache.has(ck)) return extCache.get(ck);
+  const a = dayStart(k), b = dayEnd(k), out = [];
+  let p2 = tide(a - 2 * MIN), p1 = tide(a - MIN);
+  for (let t = a; t <= b; t += MIN) {
+    const h = tide(t);
+    if (p1 > p2 && p1 >= h) out.push({ t: t - MIN, h: p1, high: true });
+    else if (p1 < p2 && p1 <= h) out.push({ t: t - MIN, h: p1, high: false });
+    p2 = p1; p1 = h;
   }
-  const tEnd = () => D.t0 + (D.v.length - 1) * H;
+  const r = out.filter(e => e.t >= a && e.t < b);
+  extCache.set(ck, r); return r;
+}
+const range = k => { const e = extremes(k); if (!e.length) return 0; return Math.max(...e.map(x => x.h)) - Math.min(...e.map(x => x.h)); };
+const kind = r => r >= VIVA ? 'viva' : r <= MUERTA ? 'muerta' : '';
 
-  function analyze() {
-    const n = (D.v.length - 1) * 60 + 1;
-    S = new Float32Array(n);
-    for (let i = 0; i < n; i++) S[i] = hAt(D.t0 + i * MIN);
-    EXT = [];
-    for (let i = 1; i < n - 1; i++) {
-      if (S[i] > S[i - 1] && S[i] >= S[i + 1]) EXT.push({ t: D.t0 + i * MIN, h: S[i], high: true });
-      else if (S[i] < S[i - 1] && S[i] <= S[i + 1]) EXT.push({ t: D.t0 + i * MIN, h: S[i], high: false });
-    }
-    let m = 0; for (const x of D.v) m = Math.max(m, Math.abs(x));
-    lim = Math.max(3, Math.ceil(m + 0.3));
-    const r = $('thr'); r.min = -lim; r.max = lim;
-    thr = Math.max(-lim, Math.min(lim, thr)); r.value = thr;
-    crossings();
+function crossings(a, b) {             // cruces del límite del paso entre a y b
+  const out = []; let prev = tide(a) - thr;
+  for (let t = a + 2 * MIN; t <= b; t += 2 * MIN) {
+    const cur = tide(t) - thr;
+    if ((prev < 0) !== (cur < 0)) out.push({ t: t - 2 * MIN + prev / (prev - cur) * 2 * MIN, opens: cur < 0 });
+    prev = cur;
   }
-  function crossings() {
-    CROSS = [];
-    for (let i = 1; i < S.length; i++) {
-      const a = S[i - 1] - thr, b = S[i] - thr;
-      if ((a < 0) !== (b < 0)) CROSS.push({ t: D.t0 + (i - 1 + a / (a - b)) * MIN, opens: b < 0 });
-    }
-  }
-  function setData(d) { D = d; analyze(); buildScene(); render(); }
+  return out;
+}
+function windowsIn(a, b) {             // ventanas secas que tocan [a, b], completas
+  const s = a - 14 * H, e = b + 14 * H, cr = crossings(s, e), out = [];
+  let start = tide(s) < thr ? s : null;
+  for (const c of cr) { if (c.opens) start = c.t; else if (start != null) { out.push({ a: start, b: c.t }); start = null; } }
+  if (start != null) out.push({ a: start, b: e });
+  return out.filter(w => w.b > a && w.a < b).map(w => {
+    let m = Infinity; for (let t = w.a; t <= w.b; t += 5 * MIN) m = Math.min(m, tide(t));
+    return { ...w, min: m, cutA: w.a === s, cutB: w.b === e };
+  });
+}
 
-  async function load() {
-    try {
-      const r = await fetch(API, { cache: 'no-store' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const j = await r.json();
-      const t = j.hourly.time, raw = j.hourly.sea_level_height_msl, v = [];
-      for (const x of raw) { if (x == null) break; v.push(x); }
-      if (v.length < 24) throw new Error('sin datos de marea');
-      const d = { t0: t[0] * 1000, v, fetched: Date.now() };
-      store.set('mareas.datos', JSON.stringify(d));
-      fetchErr = null; setData(d);
-    } catch (e) {
-      fetchErr = e.message || String(e);
-      if (!D) {
-        try {
-          const c = JSON.parse(store.get('mareas.datos'));
-          if (c && c.t0 + (c.v.length - 1) * H > Date.now() + H) { setData(c); return; }
-        } catch {}
-        $('pill').textContent = 'Sin conexión';
-        $('title').textContent = 'No hay datos';
-        $('sub').textContent = 'No se pudo descargar la marea. Revisa tu internet; se reintenta solo.';
-      }
-      foot();
-    }
-  }
+/* ---------- sol (para sombrear la noche) ---------- */
+function sun(k) {
+  const r = Math.PI / 180, JD = (dayStart(k) + 12 * H) / DAY + 2440587.5;
+  const n = Math.round(JD - 2451545 + P.lon / 360), J = n - P.lon / 360;
+  const M = (357.5291 + 0.98560028 * J) % 360, C = 1.9148 * Math.sin(M * r) + 0.02 * Math.sin(2 * M * r) + 0.0003 * Math.sin(3 * M * r);
+  const L = (M + C + 282.9372) % 360, Jt = 2451545 + J + 0.0053 * Math.sin(M * r) - 0.0069 * Math.sin(2 * L * r);
+  const sd = Math.sin(L * r) * Math.sin(23.4397 * r), cd = Math.cos(Math.asin(sd));
+  const cw = (Math.sin(-0.833 * r) - Math.sin(P.lat * r) * sd) / (Math.cos(P.lat * r) * cd);
+  if (cw < -1 || cw > 1) return null;
+  const w = Math.acos(cw) / r / 360, ms = j => (j - 2440587.5) * DAY;
+  return { rise: ms(Jt - w), set: ms(Jt + w) };
+}
 
-  /* ---------- escena ---------- */
-  const VH = 300, Y0 = 205, ppm = () => 72 / lim, yOf = h => Y0 - h * ppm();
-  const sm = (a, b, x) => { const u = Math.max(0, Math.min(1, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
-  const mix = (a, b, u) => a + (b - a) * u;
-  // Perfil del terreno en px. Horizontal ≈ 0,6 px por metro (medidas de OpenStreetMap):
-  // costa de Rolecha | paso ≈ 600 m entre líneas de pleamar | isla ≈ 450 m de ancho y ≈ 30 m de alto.
-  function prof(x) {
-    const hi = yOf(lim + .35), t = yOf(thr), top = hi - 56;
-    if (x < 60)  return mix(hi - 38, hi, sm(26, 60, x));
-    if (x < 175) return mix(hi, t, sm(60, 175, x));
-    if (x < 335) return t - 1.5 * Math.sin((x - 175) / 160 * Math.PI * 3) ** 2;
-    if (x < 420) return mix(t, hi, sm(335, 420, x));
-    if (x < 475) return mix(hi, top, sm(420, 475, x));
-    if (x < 625) return top - 5 * Math.sin((x - 475) / 150 * Math.PI);
-    if (x < 690) return mix(top, hi, sm(625, 690, x));
-    return mix(hi, VH + 30, sm(690, 736, x));
-  }
-  function buildScene() {
-    let d = `M0 ${VH}`;
-    for (let x = 0; x <= 800; x += 4) d += `L${x} ${prof(x).toFixed(1)}`;
-    $('land').setAttribute('d', d + `L800 ${VH}Z`);
-    const hi = yOf(lim + .35), y1 = hi - 14;
-    $('gLand').setAttribute('y1', y1);
-    $('ls1').setAttribute('offset', (20 / (VH - y1)).toFixed(3));
-
-    // árboles ≈ 15 m y casa ≈ 5 m, a la misma escala que la altura de la isla (≈ 30 m)
-    const tree = (x, s) => { const y = prof(x) + 1; return `<rect x="${x - 1}" y="${(y - 8 * s).toFixed(1)}" width="2" height="${(8 * s).toFixed(1)}" fill="#5a4632"/>` +
-      `<path d="M${x} ${(y - 46 * s).toFixed(1)}l${13 * s} ${24 * s}h-${7 * s}l${10 * s} ${18 * s}h-${32 * s}l${10 * s}-${18 * s}h-${7 * s}z" fill="#2f5d45"/>`; };
-    const ya = prof(20);
-    $('deco').innerHTML = tree(6, .5) + tree(38, .55) + tree(47, .45) +
-      `<rect x="14" y="${ya - 7}" width="13" height="8" fill="#f4ead6"/><path d="M12 ${ya - 7}l8.5-6 8.5 6z" fill="#a3442f"/>` +
-      `<rect x="19" y="${ya - 4}" width="3" height="5" fill="#6b4a36"/>` +
-      [[484, .42], [498, .52], [514, .6], [531, .5], [547, .62], [566, .55], [583, .6], [599, .5], [614, .58], [630, .45], [644, .4]].map(a => tree(a[0], a[1])).join('');
-    $('lblA').setAttribute('x', 6);   $('lblA').setAttribute('y', ya - 40);
-    $('lblB').setAttribute('x', 556); $('lblB').setAttribute('y', prof(550) - 38);
-    const t = yOf(thr);
-
-    // regla de mareas
-    let s = `<rect x="734" y="0" width="66" height="${VH}" fill="rgba(8,28,40,.45)"/>`;
-    for (let k = -lim * 2; k <= lim * 2; k++) {
-      const h = k / 2, y = yOf(h).toFixed(1), big = k % 2 === 0;
-      s += `<line x1="734" x2="${big ? 750 : 743}" y1="${y}" y2="${y}" stroke="#fff" stroke-width="${big ? 2 : 1}" opacity="${big ? .95 : .6}"/>`;
-      if (big) s += `<text x="793" y="${+y + 4.5}" text-anchor="end" font-size="13" font-weight="600" fill="#fff">${h > 0 ? '+' : h < 0 ? '−' : ''}${Math.abs(h)}</text>`;
-    }
-    s += `<line x1="734" x2="800" y1="${t.toFixed(1)}" y2="${t.toFixed(1)}" stroke="#f2b632" stroke-width="2.5"/>` +
-         `<text x="754" y="${(t - 4).toFixed(1)}" font-size="10" font-weight="700" fill="#f7c95a">PASO</text>` +
-         `<path id="ptr" d="M0 0l-11-7v14z" fill="#fff"/>`;
-    $('staff').innerHTML = s;
-  }
-
-  let yWater = 250, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function drawWater(ts) {
-    const p = still ? 0 : ts / 1500;
-    let d = '';
-    for (let x = 0; x <= 800; x += 16)
-      d += `${x ? 'L' : 'M'}${x} ${(yWater + 1.6 * Math.sin(x / 46 + p) + .8 * Math.sin(x / 19 - p * 1.4)).toFixed(1)}`;
-    $('surf').setAttribute('d', d);
-    $('water').setAttribute('d', d + `L800 ${VH}L0 ${VH}Z`);
-    if (!still) requestAnimationFrame(drawWater);
-  }
-
-  /* ---------- render ---------- */
-  function sky(now) {
-    const hr = +fHour.format(now) + new Date(now).getUTCMinutes() / 60;
-    const s = hr < 5.75 || hr >= 21.5 ? 'night' : hr < 7.5 ? 'dawn' : hr < 19.75 ? 'day' : 'dusk';
-    if (document.body.dataset.sky !== s) {
-      document.body.dataset.sky = s;
-      document.querySelector('meta[name=theme-color]').content = s === 'night' ? '#0e1a22' : '#f3efe6';
-    }
-  }
-
-  function windows(now) {            // ventanas de cruce desde ahora
-    const out = [], end = tEnd();
-    let open = hAt(now) < thr, start = open ? now : null;
-    for (const c of CROSS) {
-      if (c.t <= now) continue;
-      if (c.opens) start = c.t;
-      else if (start != null) { out.push({ a: start, b: c.t, live: start === now }); start = null; }
-    }
-    if (start != null) out.push({ a: start, b: null, live: start === now });
-    for (const w of out) {
-      let m = Infinity;
-      for (let t = w.a; t <= (w.b ?? end); t += 5 * MIN) m = Math.min(m, hAt(t));
-      w.min = m;
-    }
-    return out;
-  }
-
-  function render() {
-    const now = Date.now();
-    $('clock').textContent = `${fLong.format(now)} · ${hhmm(now)}`;
-    sky(now);
-    if (!D) return;
-    if (now > tEnd() - 2 * H) { foot(); return; }
-
-    const h = hAt(now), rate = (hAt(now + 5 * MIN) - hAt(now - 5 * MIN)) * 6;   // m/h
-    const open = h < thr, wins = windows(now);
-    const next = CROSS.find(c => c.t > now);
-    const st = $('status'), cal = !store.get('mareas.umbralT') ? ' · límite sin calibrar' : '';
-
-    $('num').textContent = fmtH(h);
-    const slack = Math.abs(rate) < .06;
-    $('trend').textContent = slack ? 'casi quieta' : `${rate > 0 ? '↑ subiendo' : '↓ bajando'} · ${Math.round(Math.abs(rate) * 100)} cm/h`;
-
-    if (open) {
-      const left = next ? next.t - now : null;
-      const soon = left != null && left < 45 * MIN;
-      st.dataset.state = soon ? 'warn' : 'open';
-      $('pill').textContent = (soon ? 'Paso por cerrarse' : 'Paso abierto') + cal;
-      $('title').textContent = soon ? 'Se está cerrando' : 'Puedes cruzar';
-      $('sub').innerHTML = next
-        ? `El agua tapa el paso a las <b>${esc(when(next.t))}</b> · quedan <b>${dur(left)}</b>`
-        : 'El paso sigue seco durante todo el pronóstico.';
-    } else {
-      st.dataset.state = 'shut';
-      $('pill').textContent = 'Paso cubierto' + cal;
-      $('title').textContent = 'No cruces';
-      $('sub').innerHTML = next
-        ? `Se despeja a las <b>${esc(when(next.t))}</b> · en <b>${dur(next.t - now)}</b>`
-        : 'La marea no baja lo suficiente en los próximos días.';
-    }
-
-    // escena
-    yWater = yOf(h);
-    if (still) drawWater(0);
-    const bl = $('barLabel');
-    if (open) { bl.textContent = `paso seco · ${fmtCm(thr - h)} sobre el agua`; bl.setAttribute('y', yOf(thr) - 12); }
-    else      { bl.textContent = `${fmtCm(h - thr)} de agua sobre el paso`;     bl.setAttribute('y', yWater - 10); }
-    const ptr = document.getElementById('ptr');
-    if (ptr) ptr.setAttribute('transform', `translate(732 ${yWater.toFixed(1)})`);
-
-    chart(now);
-    lists(now, wins);
+/* ---------- descarga del pronóstico ---------- */
+async function load() {
+  try {
+    const api = `https://marine-api.open-meteo.com/v1/marine?latitude=${P.lat}&longitude=${P.lon}` +
+                `&hourly=sea_level_height_msl&timeformat=unixtime&timezone=GMT&past_days=1&forecast_days=16`;
+    const r = await fetch(api, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json(), t = j.hourly.time, v = [];
+    for (const x of j.hourly.sea_level_height_msl) { if (x == null) break; v.push(x); }
+    if (v.length < 24) throw new Error('sin datos de marea');
+    const d = { t0: t[0] * 1000, v, fetched: Date.now() };
+    store.set(K('datos'), JSON.stringify(d));
+    fetchErr = null; setData(d, true);
+  } catch (e) {
+    fetchErr = e.message || String(e);
     foot();
   }
-
-  /* ---------- gráfico ---------- */
-  const CW = 800, CT = 30, CB = 196;
-  let cx = null, cy = null, cRange = null;
-  function chart(now) {
-    const a = Math.max(D.t0, now - 6 * H), b = Math.min(tEnd(), now + 36 * H);
-    cRange = [a, b];
-    cx = t => (t - a) / (b - a) * CW;
-    cy = h => CT + (lim - h) / (2 * lim) * (CB - CT);
-    let s = '';
-    // ventanas abiertas
-    let st = hAt(a) < thr ? a : null;
-    for (const c of CROSS) {
-      if (c.t < a || c.t > b) continue;
-      if (c.opens) st = c.t; else if (st != null) { s += band(st, c.t); st = null; }
-    }
-    if (st != null) s += band(st, b);
-    function band(p, q) { return `<rect x="${cx(p).toFixed(1)}" y="${CT}" width="${(cx(q) - cx(p)).toFixed(1)}" height="${CB - CT}" style="fill:var(--open)" opacity=".16"/>`; }
-    // horas
-    for (let t = Math.ceil(a / H) * H; t <= b; t += H) {
-      const hr = +fHour.format(t);
-      if (hr % 6) continue;
-      const x = cx(t).toFixed(1), mid = hr === 0;
-      s += `<line x1="${x}" x2="${x}" y1="${CT}" y2="${CB}" style="stroke:var(--line)" stroke-width="${mid ? 2 : 1}"/>`;
-      if (x > 24 && x < CW - 24)
-        s += `<text x="${x}" y="${CB + 20}" text-anchor="middle" font-size="14" font-weight="${mid ? 700 : 400}" style="fill:var(--muted)">${mid ? esc(day(t + H)) : String(hr).padStart(2, '0') + ':00'}</text>`;
-    }
-    // curva
-    let d = '';
-    for (let t = a; t <= b; t += 10 * MIN) d += `${d ? 'L' : 'M'}${cx(t).toFixed(1)} ${cy(hAt(t)).toFixed(1)}`;
-    s += `<path d="${d}L${CW} ${CB}L0 ${CB}Z" style="fill:var(--sea)" opacity=".13"/>`;
-    s += `<path d="${d}" fill="none" style="stroke:var(--sea)" stroke-width="3" stroke-linejoin="round"/>`;
-    // límite
-    const yt = cy(thr).toFixed(1);
-    s += `<line x1="0" x2="${CW}" y1="${yt}" y2="${yt}" stroke="#e3a52b" stroke-width="2" stroke-dasharray="7 6"/>`;
-    // extremos
-    for (const e of EXT) {
-      if (e.t < a + 20 * MIN || e.t > b - 20 * MIN) continue;
-      const x = cx(e.t), y = cy(e.h);
-      s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" style="fill:var(--card);stroke:var(--sea)" stroke-width="2.5"/>` +
-           `<text x="${x.toFixed(1)}" y="${(y + (e.high ? -11 : 22)).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="650" style="fill:var(--ink)">${hhmm(e.t)}</text>`;
-    }
-    // ahora
-    const xn = cx(now).toFixed(1), yn = cy(hAt(now)).toFixed(1);
-    s += `<line x1="${xn}" x2="${xn}" y1="${CT - 8}" y2="${CB}" style="stroke:var(--ink)" stroke-width="2"/>` +
-         `<circle cx="${xn}" cy="${yn}" r="6" style="fill:var(--ink)"/>` +
-         `<text x="${xn}" y="${CT - 13}" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--ink)">AHORA</text>`;
-    s += `<g id="probe" visibility="hidden"><line y1="${CT}" y2="${CB}" style="stroke:var(--muted)" stroke-dasharray="3 4"/>` +
-         `<circle r="5" style="fill:var(--amber)"/><text y="${CT - 13}" font-size="14" font-weight="700" style="fill:var(--ink);stroke:var(--card)" stroke-width="5" paint-order="stroke"></text></g>`;
-    $('chart').innerHTML = s;
+}
+function setData(d, fresh) {
+  D = d;
+  if (fresh) {                          // mide el desfase entre pronóstico y cálculo
+    let s = 0; for (let i = 0; i < d.v.length; i++) s += d.v[i] - harm(d.t0 + i * H);
+    OFF = s / d.v.length; store.set(K('off'), OFF.toFixed(4));
   }
-  function probe(ev) {
-    if (!cRange) return;
-    const r = $('chart').getBoundingClientRect();
-    const x = Math.max(0, Math.min(CW, (ev.clientX - r.left) / r.width * CW));
-    const t = cRange[0] + x / CW * (cRange[1] - cRange[0]), h = hAt(t);
-    const g = document.getElementById('probe'); if (!g) return;
-    g.setAttribute('visibility', 'visible');
-    const [ln, c, tx] = g.children;
-    ln.setAttribute('x1', x); ln.setAttribute('x2', x);
-    c.setAttribute('cx', x); c.setAttribute('cy', cy(h));
-    tx.textContent = `${when(t)} · ${fmtH(h)}`;
-    tx.setAttribute('text-anchor', x < 110 ? 'start' : x > CW - 110 ? 'end' : 'middle');
-    tx.setAttribute('x', x);
-  }
-  $('chart').addEventListener('pointermove', probe);
-  $('chart').addEventListener('pointerdown', probe);
-  $('chart').addEventListener('pointerleave', () => { const g = document.getElementById('probe'); if (g) g.setAttribute('visibility', 'hidden'); });
+  gen++; extCache.clear(); buildScene(); renderAll();
+}
 
-  /* ---------- listas ---------- */
-  function lists(now, wins) {
-    $('wins').innerHTML = wins.slice(0, 5).map(w => {
-      const from = w.live ? 'ahora' : when(w.a);
-      const to = w.b ? hhmm(w.b) : '…';
-      const len = w.b ? dur(w.b - w.a) : '';
-      return `<li><span><b>${esc(from)} – ${to}</b></span><span class="r">${len}${len ? ' · ' : ''}mín ${fmtH(w.min, 1)}</span></li>`;
-    }).join('') || `<li class="empty">Con este límite el paso no se despeja en los próximos días.</li>`;
-    $('tides').innerHTML = EXT.filter(e => e.t > now).slice(0, 6).map(e =>
-      `<li><span><b class="${e.high ? 'up' : 'dn'}">${e.high ? '▲' : '▼'}</b> ${e.high ? 'Pleamar' : 'Bajamar'} <small>${esc(when(e.t))}</small></span><span class="r"><b>${fmtH(e.h)}</b></span></li>`
-    ).join('');
-  }
+/* ---------- pestañas ---------- */
+const TABS = ['mareas', 'paso', 'mas'];
+let tab = store.get('mareas.tab'); if (!TABS.includes(tab) || (tab === 'paso' && !P.paso)) tab = 'mareas';
+function showTab(t) {
+  tab = t; store.set('mareas.tab', t);
+  for (const x of TABS) { $('p-' + x).hidden = x !== t; $('t-' + x).setAttribute('aria-selected', x === t); }
+  scrollTo(0, 0); renderAll();
+}
+for (const x of TABS) $('t-' + x).addEventListener('click', () => showTab(x));
+if (!P.paso) $('t-paso').hidden = true; else $('tPasoLbl').textContent = 'Paso a ' + P.nombre.replace(/^Isla /, '');
 
-  function foot() {
-    let s = '';
-    if (D) s += `Marea modelada para ${Math.abs(LAT).toFixed(3)}° S, ${Math.abs(LON).toFixed(3)}° O (Open-Meteo Marine), en metros sobre el nivel medio del mar. Descargada ${esc(when(D.fetched))}. `;
-    if (D && Date.now() > tEnd() - 2 * H) s += `<span class="err">Los datos guardados ya caducaron. </span>`;
-    if (fetchErr) s += `<span class="err">No se pudo actualizar (${esc(fetchErr)}); ${D ? 'se muestran los últimos datos guardados' : 'reintentando'}. </span>`;
-    s += `Es un pronóstico, no la tabla oficial del SHOA: el viento y la presión pueden adelantar o atrasar la marea. Cruza con margen y mirando el agua.`;
-    $('foot').innerHTML = s;
+/* ---------- día elegido ---------- */
+let sel = today();
+function pick(k) { sel = k; renderAll(); }
+function daybar() {
+  const t = today(), n = diffDays(t, sel), r = range(sel), kd = kind(r);
+  let s = `<div class="daynav"><button type="button" data-go="-1" aria-label="Día anterior">‹</button>` +
+    `<div class="t"><b>${esc(fLong.format(dayStart(sel) + 12 * H))}</b><small>${n === 0 ? 'hoy' : n === 1 ? 'mañana' : n > 0 ? `en ${n} días` : `hace ${-n} días`}` +
+    ` · rango ${r.toFixed(1).replace('.', ',')} m${kd ? `<span class="tag ${kd}">marea ${kd}</span>` : ''}</small></div>` +
+    `<button type="button" data-go="1" aria-label="Día siguiente">›</button></div><div class="strip">`;
+  for (let i = 0; i < 14; i++) {
+    const k = addDays(t, i), rr = range(k);
+    s += `<button type="button" data-k="${k}" ${k === sel ? 'aria-current="date"' : ''} aria-label="${esc(fLong.format(dayStart(k) + 12 * H))}">` +
+      `<small>${i === 0 ? 'hoy' : esc(fDow.format(dayStart(k) + 12 * H).replace('.', ''))}</small><b>${+k.slice(8)}</b>` +
+      `<i style="--r:${Math.round(Math.min(1, rr / (VIVA * 1.08)) * 100)}%"></i></button>`;
   }
-
-  /* ---------- límite de cruce ---------- */
-  function setThr(v, remoteT) {
-    thr = Math.round(v * 100) / 100;
-    store.set('mareas.umbral', thr);
-    store.set('mareas.umbralT', remoteT || Date.now());
-    $('thr').value = thr; $('thrOut').textContent = fmtH(thr);
-    if (D) { crossings(); buildScene(); render(); }
-    if (!remoteT) pushCfg();
-    avisosUI();
+  s += `<label class="btnlike cal" title="Elegir otra fecha">Otra fecha<input type="date" value="${sel}" aria-label="Elegir fecha"></label></div>`;
+  for (const el of document.querySelectorAll('.daybar')) {
+    if (el.closest('[hidden]')) continue;
+    const sc = el.querySelector('.strip')?.scrollLeft || 0;
+    el.innerHTML = s;
+    const st = el.querySelector('.strip'); st.scrollLeft = sc;
+    const cur = st.querySelector('[aria-current]');
+    if (cur && (cur.offsetLeft < st.scrollLeft || cur.offsetLeft + cur.offsetWidth > st.scrollLeft + st.clientWidth)) st.scrollLeft = cur.offsetLeft - 12;
   }
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.daybar button');
+  if (!b) return;
+  if (b.dataset.go) pick(addDays(sel, +b.dataset.go));
+  else if (b.dataset.k) pick(b.dataset.k);
+});
+document.addEventListener('change', e => {
+  if (e.target.matches('.daybar input[type=date]') && /^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) pick(e.target.value);
+});
 
-  /* ---------- avisos (ntfy) y sincronización del límite ---------- */
-  const NTFY = 'https://ntfy.sh/';
-  const ESTADO = 'https://raw.githubusercontent.com/MistaJ4Z/marea-nao/estado/estado.json';
-  let canal = store.get('mareas.canal'), estado = null, cfgTimer = null;
+/* ---------- gráfico del día ---------- */
+const CH = {};
+function chart(id, paso) {
+  const el = $(id), W = Math.max(300, Math.round(el.parentElement.clientWidth || 800));
+  const Hh = Math.round(Math.min(360, Math.max(270, W * .55)));
+  const L = 38, R = 10, T = 30, B = 34, a = dayStart(sel), b = dayEnd(sel), pw = W - L - R, ph = Hh - T - B;
+  const x = t => L + (t - a) / (b - a) * pw, y = h => T + (lim - h) / (2 * lim) * ph;
+  el.setAttribute('viewBox', `0 0 ${W} ${Hh}`); el.setAttribute('width', W); el.setAttribute('height', Hh);
+  let s = '';
+  const su = sun(sel);
+  if (su) s += `<rect x="${L}" y="${T}" width="${(x(su.rise) - L).toFixed(1)}" height="${ph}" style="fill:var(--night)"/>` +
+               `<rect x="${x(su.set).toFixed(1)}" y="${T}" width="${(L + pw - x(su.set)).toFixed(1)}" height="${ph}" style="fill:var(--night)"/>`;
+  if (paso) for (const w of windowsIn(a, b)) {
+    const p = x(Math.max(a, w.a)), q = x(Math.min(b, w.b));
+    s += `<rect x="${p.toFixed(1)}" y="${T}" width="${(q - p).toFixed(1)}" height="${ph}" style="fill:var(--open)" opacity=".17"/>`;
+  }
+  for (let m = -lim; m <= lim; m++) {
+    const yy = y(m).toFixed(1);
+    s += `<line x1="${L}" x2="${L + pw}" y1="${yy}" y2="${yy}" style="stroke:var(--grid)" stroke-width="${m ? 1 : 1.6}"/>`;
+    if (m % (lim > 4 ? 2 : 1) === 0) s += `<text x="${L - 7}" y="${+yy + 4.5}" text-anchor="end" font-size="13" style="fill:var(--muted)">${m > 0 ? '+' : m < 0 ? '−' : ''}${Math.abs(m)}</text>`;
+  }
+  const every = W >= 640 ? 2 : 3;
+  for (let t = a; t <= b + 1; t += H) {
+    const hr = +fHour.format(t), xx = x(t).toFixed(1), lab = hr % every === 0;
+    s += `<line x1="${xx}" x2="${xx}" y1="${T}" y2="${T + ph}" style="stroke:var(--grid)" stroke-width="${lab ? 1.2 : .6}"/>`;
+    if (lab && t < b - 20 * MIN && t > a - 1) s += `<text x="${xx}" y="${Hh - 11}" text-anchor="${t === a ? 'start' : 'middle'}" font-size="14" font-weight="600" style="fill:var(--muted)">${String(hr).padStart(2, '0')}${W >= 520 ? ':00' : ''}</text>`;
+  }
+  s += `<text x="${L + pw}" y="${T - 12}" text-anchor="end" font-size="12" style="fill:var(--muted)">m</text>`;
+  let d = '';
+  for (let t = a; t <= b; t += 6 * MIN) d += `${d ? 'L' : 'M'}${x(t).toFixed(1)} ${y(tide(t)).toFixed(1)}`;
+  s += `<path d="${d}L${L + pw} ${T + ph}L${L} ${T + ph}Z" style="fill:var(--sea)" opacity=".13"/>` +
+       `<path d="${d}" fill="none" style="stroke:var(--sea)" stroke-width="3" stroke-linejoin="round"/>`;
+  if (paso) {
+    const yt = y(thr).toFixed(1);
+    s += `<line x1="${L}" x2="${L + pw}" y1="${yt}" y2="${yt}" style="stroke:var(--amber)" stroke-width="2" stroke-dasharray="7 6"/>`;
+  }
+  for (const e of extremes(sel)) {
+    const xx = x(e.t), yy = y(e.h), anc = xx < L + 40 ? 'start' : xx > L + pw - 40 ? 'end' : 'middle';
+    const ty = e.high ? yy - 12 : yy + 22;
+    s += `<circle cx="${xx.toFixed(1)}" cy="${yy.toFixed(1)}" r="4.5" style="fill:var(--card);stroke:var(--sea)" stroke-width="2.5"/>` +
+         `<text x="${xx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anc}" font-size="15" font-weight="700" style="fill:var(--ink);stroke:var(--card)" stroke-width="4" paint-order="stroke">${hhmm(e.t)}` +
+         `<tspan font-size="12.5" font-weight="500" style="fill:var(--muted)"> ${fmtH(e.h, 1).replace(' m', '')}</tspan></text>`;
+  }
+  const now = Date.now();
+  if (now >= a && now < b) {
+    const xn = x(now).toFixed(1), yn = y(tide(now)).toFixed(1);
+    s += `<line x1="${xn}" x2="${xn}" y1="${T - 6}" y2="${T + ph}" style="stroke:var(--ink)" stroke-width="2"/>` +
+         `<circle cx="${xn}" cy="${yn}" r="6" style="fill:var(--ink);stroke:var(--card)" stroke-width="2"/>` +
+         `<text x="${xn}" y="${T - 11}" text-anchor="${+xn < L + 30 ? 'start' : +xn > L + pw - 30 ? 'end' : 'middle'}" font-size="12" font-weight="700" style="fill:var(--ink)">AHORA</text>`;
+  }
+  s += `<g class="probe" visibility="hidden"><line y1="${T}" y2="${T + ph}" style="stroke:var(--ink)" stroke-dasharray="3 4"/><circle r="6" style="fill:var(--amber);stroke:var(--card)" stroke-width="2"/></g>`;
+  el.innerHTML = s;
+  CH[id] = { a, b, x, y, L, pw, W };
+}
+function readoutIdle(id) {
+  const ro = $(id === 'chM' ? 'roM' : 'roP'), e = extremes(sel);
+  const hi = e.filter(x => x.high), lo = e.filter(x => !x.high);
+  ro.innerHTML = `<span>Toca la curva</span><span>${hi.length ? `▲ <b>${fmtH(Math.max(...hi.map(x => x.h)), 1)}</b>` : ''} ${lo.length ? ` ▼ <b>${fmtH(Math.min(...lo.map(x => x.h)), 1)}</b>` : ''}</span>`;
+}
+function probe(ev) {
+  const id = ev.currentTarget.id, c = CH[id]; if (!c) return;
+  const r = ev.currentTarget.getBoundingClientRect();
+  const px = Math.max(c.L, Math.min(c.L + c.pw, (ev.clientX - r.left) / r.width * c.W));
+  const t = c.a + (px - c.L) / c.pw * (c.b - c.a), h = tide(t), rate = (tide(t + 5 * MIN) - tide(t - 5 * MIN)) * 6;
+  const g = ev.currentTarget.querySelector('.probe'); g.setAttribute('visibility', 'visible');
+  const [ln, ci] = g.children;
+  ln.setAttribute('x1', px); ln.setAttribute('x2', px); ci.setAttribute('cx', px); ci.setAttribute('cy', c.y(h));
+  let extra = Math.abs(rate) < .06 ? 'casi quieta' : rate > 0 ? '↑ subiendo' : '↓ bajando';
+  if (id === 'chP') extra = h < thr ? `paso seco` : `${fmtCm(h - thr)} sobre el paso`;
+  $(id === 'chM' ? 'roM' : 'roP').innerHTML = `<span><b>${hhmm(t)}</b> · ${extra}</span><span><b>${fmtH(h)}</b></span>`;
+}
+for (const id of ['chM', 'chP']) {
+  const el = $(id);
+  el.addEventListener('pointerdown', probe);
+  el.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' || e.buttons) probe(e); });
+  el.addEventListener('pointerleave', () => { const g = el.querySelector('.probe'); if (g) g.setAttribute('visibility', 'hidden'); readoutIdle(id); });
+}
+
+/* ---------- pestaña Mareas ---------- */
+function renderMareas(now) {
+  const h = tide(now), rate = (tide(now + 5 * MIN) - tide(now - 5 * MIN)) * 6;
+  $('nNum').textContent = fmtH(h);
+  $('nTrend').innerHTML = Math.abs(rate) < .06 ? 'Casi quieta, cambiando de dirección'
+    : `${rate > 0 ? '↑ <b>Subiendo</b>' : '↓ <b>Bajando</b>'} · ${Math.round(Math.abs(rate) * 100)} cm por hora`;
+  let nx = null;
+  for (let i = 0; i < 3 && !nx; i++) nx = extremes(addDays(today(), i)).find(e => e.t > now);
+  $('nNext').innerHTML = nx ? `${nx.high ? 'Próxima pleamar' : 'Próxima bajamar'}<b>${esc(when(nx.t))} · ${fmtH(nx.h, 1)}</b>en ${dur(nx.t - now)}` : '';
+
+  chart('chM', false); readoutIdle('chM');
+  $('srcM').innerHTML = `<span>${isForecast(sel) ? 'Pronóstico oceánico (Open-Meteo)' : 'Cálculo astronómico · ±3 min, ±5 cm'}</span><span>Zona sombreada: noche</span>`;
+
+  $('weekFrom').textContent = 'desde ' + (diffDays(today(), sel) === 0 ? 'hoy' : fShort.format(dayStart(sel) + 12 * H));
+  let s = '';
+  for (let i = 0; i < 7; i++) {
+    const k = addDays(sel, i), kd = kind(range(k));
+    s += `<li data-k="${k}" ${i === 0 ? 'aria-current="date"' : ''}><div class="d">${esc(dayName(k))}<small>${esc(fShort.format(dayStart(k) + 12 * H))}${kd ? ' · ' + kd : ''}</small></div><div class="x">` +
+      extremes(k).map(e => `<span><b class="${e.high ? 'up' : 'dn'}">${e.high ? '▲' : '▼'}</b> ${hhmm(e.t)}<small>${fmtH(e.h, 1)}</small></span>`).join('') + '</div></li>';
+  }
+  $('week').innerHTML = s;
+}
+$('week').addEventListener('click', e => {
+  const li = e.target.closest('li[data-k]'); if (!li) return;
+  pick(li.dataset.k); $('chM').scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
+/* ---------- pestaña Paso: escena ---------- */
+const VH = 300, Y0 = 205, ppm = () => 72 / lim, yOf = h => Y0 - h * ppm();
+const sm = (a, b, x) => { const u = Math.max(0, Math.min(1, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
+const mix = (a, b, u) => a + (b - a) * u;
+// Perfil del terreno en px. Horizontal ≈ 0,6 px por metro (medidas de OpenStreetMap):
+// costa de Rolecha | paso ≈ 600 m entre líneas de pleamar | isla ≈ 450 m de ancho y ≈ 30 m de alto.
+function prof(x) {
+  const hi = yOf(lim + .35), t = yOf(thr), top = hi - 56;
+  if (x < 60)  return mix(hi - 38, hi, sm(26, 60, x));
+  if (x < 175) return mix(hi, t, sm(60, 175, x));
+  if (x < 335) return t - 1.5 * Math.sin((x - 175) / 160 * Math.PI * 3) ** 2;
+  if (x < 420) return mix(t, hi, sm(335, 420, x));
+  if (x < 475) return mix(hi, top, sm(420, 475, x));
+  if (x < 625) return top - 5 * Math.sin((x - 475) / 150 * Math.PI);
+  if (x < 690) return mix(top, hi, sm(625, 690, x));
+  return mix(hi, VH + 30, sm(690, 736, x));
+}
+function buildScene() {
+  if (!P.paso) return;
+  let d = `M0 ${VH}`;
+  for (let x = 0; x <= 800; x += 4) d += `L${x} ${prof(x).toFixed(1)}`;
+  $('land').setAttribute('d', d + `L800 ${VH}Z`);
+  const hi = yOf(lim + .35), y1 = hi - 14;
+  $('gLand').setAttribute('y1', y1);
+  $('ls1').setAttribute('offset', (20 / (VH - y1)).toFixed(3));
+  const tree = (x, s) => { const y = prof(x) + 1; return `<rect x="${x - 1}" y="${(y - 8 * s).toFixed(1)}" width="2" height="${(8 * s).toFixed(1)}" fill="#5a4632"/>` +
+    `<path d="M${x} ${(y - 46 * s).toFixed(1)}l${13 * s} ${24 * s}h-${7 * s}l${10 * s} ${18 * s}h-${32 * s}l${10 * s}-${18 * s}h-${7 * s}z" fill="#2f5d45"/>`; };
+  const ya = prof(20);
+  $('deco').innerHTML = tree(6, .5) + tree(38, .55) + tree(47, .45) +
+    `<rect x="14" y="${ya - 7}" width="13" height="8" fill="#f4ead6"/><path d="M12 ${ya - 7}l8.5-6 8.5 6z" fill="#a3442f"/>` +
+    `<rect x="19" y="${ya - 4}" width="3" height="5" fill="#6b4a36"/>` +
+    [[484, .42], [498, .52], [514, .6], [531, .5], [547, .62], [566, .55], [583, .6], [599, .5], [614, .58], [630, .45], [644, .4]].map(a => tree(a[0], a[1])).join('');
+  $('lblA').textContent = P.paso.desde; $('lblB').textContent = P.nombre;
+  $('lblA').setAttribute('x', 6);   $('lblA').setAttribute('y', ya - 40);
+  $('lblB').setAttribute('x', 556); $('lblB').setAttribute('y', prof(550) - 38);
+  const t = yOf(thr);
+  let s = `<rect x="734" y="0" width="66" height="${VH}" fill="rgba(8,28,40,.45)"/>`;
+  for (let k = -lim * 2; k <= lim * 2; k++) {
+    const h = k / 2, y = yOf(h).toFixed(1), big = k % 2 === 0;
+    s += `<line x1="734" x2="${big ? 750 : 743}" y1="${y}" y2="${y}" stroke="#fff" stroke-width="${big ? 2 : 1}" opacity="${big ? .95 : .6}"/>`;
+    if (big) s += `<text x="793" y="${+y + 4.5}" text-anchor="end" font-size="13" font-weight="600" fill="#fff">${h > 0 ? '+' : h < 0 ? '−' : ''}${Math.abs(h)}</text>`;
+  }
+  s += `<line x1="734" x2="800" y1="${t.toFixed(1)}" y2="${t.toFixed(1)}" stroke="#f2b632" stroke-width="2.5"/>` +
+       `<text x="754" y="${(t - 4).toFixed(1)}" font-size="10" font-weight="700" fill="#f7c95a">PASO</text>` +
+       `<path id="ptr" d="M0 0l-11-7v14z" fill="#fff"/>`;
+  $('staff').innerHTML = s;
+}
+let yWater = 250; const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function drawWater(ts) {
+  if (tab === 'paso' || still) {
+    const p = still ? 0 : ts / 1500; let d = '';
+    for (let x = 0; x <= 800; x += 16)
+      d += `${x ? 'L' : 'M'}${x} ${(yWater + 1.6 * Math.sin(x / 46 + p) + .8 * Math.sin(x / 19 - p * 1.4)).toFixed(1)}`;
+    $('surf').setAttribute('d', d); $('water').setAttribute('d', d + `L800 ${VH}L0 ${VH}Z`);
+  }
+  if (!still) requestAnimationFrame(drawWater);
+}
+
+/* ---------- pestaña Paso ---------- */
+function renderPaso(now) {
+  const h = tide(now), rate = (tide(now + 5 * MIN) - tide(now - 5 * MIN)) * 6, open = h < thr;
+  const next = crossings(now, now + 10 * DAY)[0], st = $('status');
+  $('num').textContent = fmtH(h);
+  $('trend').textContent = Math.abs(rate) < .06 ? 'casi quieta' : `${rate > 0 ? '↑ subiendo' : '↓ bajando'} · ${Math.round(Math.abs(rate) * 100)} cm/h`;
+  if (open) {
+    const left = next ? next.t - now : null, soon = left != null && left < 45 * MIN;
+    st.dataset.state = soon ? 'warn' : 'open';
+    $('pill').textContent = soon ? 'Paso por cerrarse' : 'Paso abierto';
+    $('title').textContent = soon ? 'Se está cerrando' : 'Puedes cruzar';
+    $('sub').innerHTML = next ? `El agua tapa el paso a las <b>${esc(when(next.t))}</b> · quedan <b>${dur(left)}</b>` : 'El paso sigue seco por días.';
+  } else {
+    st.dataset.state = 'shut';
+    $('pill').textContent = 'Paso cubierto';
+    $('title').textContent = 'No cruces';
+    $('sub').innerHTML = next ? `Se despeja a las <b>${esc(when(next.t))}</b> · en <b>${dur(next.t - now)}</b>` : 'La marea no baja lo suficiente en los próximos días.';
+  }
+  yWater = yOf(h); if (still) drawWater(0);
+  const bl = $('barLabel');
+  if (open) { bl.textContent = `paso seco · ${fmtCm(thr - h)} sobre el agua`; bl.setAttribute('y', yOf(thr) - 12); }
+  else      { bl.textContent = `${fmtCm(h - thr)} de agua sobre el paso`;     bl.setAttribute('y', yWater - 10); }
+  const ptr = document.getElementById('ptr'); if (ptr) ptr.setAttribute('transform', `translate(732 ${yWater.toFixed(1)})`);
+
+  chart('chP', true); readoutIdle('chP');
+  const n = diffDays(today(), sel), locked = !PRUEBA_GRATIS && n > 1;
+  $('winDay').innerHTML = esc(n === 0 ? 'hoy' : n === 1 ? 'mañana' : fShort.format(dayStart(sel) + 12 * H)) + (n > 1 && PRUEBA_GRATIS ? ' <span class="trial">gratis en la prueba</span>' : '');
+  if (locked) { $('wins').innerHTML = `<li class="empty">Las ventanas de días futuros son parte de la versión completa.</li>`; return; }
+  const a = dayStart(sel), b = dayEnd(sel), ws = windowsIn(a, b);
+  $('wins').innerHTML = ws.map(w => {
+    const from = w.a <= now && w.b > now ? 'ahora' : w.cutA ? '…' : when(w.a);
+    const to = w.cutB ? '…' : (keyOf(w.b) === keyOf(w.a) ? hhmm(w.b) : when(w.b));
+    return `<li><span><b>${esc(from)} – ${esc(to)}</b></span><span class="r">${w.cutA || w.cutB ? '' : dur(w.b - w.a) + ' · '}mín ${fmtH(w.min, 1)}</span></li>`;
+  }).join('') || `<li class="empty">Ese día la marea no baja del límite: el paso no se despeja.</li>`;
+}
+
+/* ---------- render general ---------- */
+function sky(now) {
+  const hr = +fHour.format(now) + new Date(now).getUTCMinutes() / 60;
+  const s = hr < 5.75 || hr >= 21.5 ? 'night' : hr < 7.5 ? 'dawn' : hr < 19.75 ? 'day' : 'dusk';
+  if (document.body.dataset.sky !== s) {
+    document.body.dataset.sky = s;
+    document.querySelector('meta[name=theme-color]').content = s === 'night' ? '#0e1a22' : '#f3efe6';
+  }
+}
+function renderAll() {
+  const now = Date.now();
+  $('clock').textContent = `${innerWidth < 520 ? fShort.format(now) : fLong.format(now)} · ${hhmm(now)}`;
+  sky(now);
+  daybar();
+  if (tab === 'mareas') renderMareas(now);
+  else if (tab === 'paso' && P.paso) renderPaso(now);
+  foot();
+}
+function foot() {
+  let s = '';
+  if (D) s += `Pronóstico descargado ${esc(when(D.fetched))}, válido hasta ${esc(when(tEnd()))}. `;
+  else s += 'Sin pronóstico descargado: todo se muestra con el cálculo astronómico. ';
+  if (fetchErr) s += `<span class="err">No se pudo actualizar (${esc(fetchErr)}). </span>`;
+  s += `Punto: ${Math.abs(P.lat).toFixed(3)}° S, ${Math.abs(P.lon).toFixed(3)}° O. Constantes ajustadas el ${esc(P.ajustado)}.`;
+  $('foot').innerHTML = s;
+}
+
+/* ---------- límite de cruce ---------- */
+const localT = () => +store.get(K('umbralT')) || 0;
+function setThr(v, remoteT) {
+  thr = Math.round(v * 100) / 100;
+  store.set(K('umbral'), thr); store.set(K('umbralT'), remoteT || Date.now());
+  $('thr').value = thr; $('thrOut').textContent = fmtH(thr);
+  buildScene(); renderAll();
+  if (!remoteT) pushCfg();
+  avisosUI();
+}
+$('thr').min = -lim; $('thr').max = lim; $('thr').value = thr; $('thrOut').textContent = fmtH(thr);
+$('thr').addEventListener('input', e => setThr(+e.target.value));
+$('calib').addEventListener('click', () => setThr(tide(Date.now())));
+
+/* ---------- avisos (ntfy) y sincronización del límite ---------- */
+const NTFY = 'https://ntfy.sh/';
+const ESTADO = 'https://raw.githubusercontent.com/MistaJ4Z/marea-nao/estado/estado.json';
+const AVISOS = P.id === 'nao';            // el robot de avisos solo cubre Isla Nao por ahora
+let canal = store.get('mareas.canal'), estado = null, cfgTimer = null;
+try {
+  const q = new URLSearchParams(location.search).get('canal');
+  if (q && /^[\w-]{8,64}$/.test(q)) { canal = q; store.set('mareas.canal', q); history.replaceState(null, '', location.pathname); }
+} catch {}
+const publish = o => fetch(NTFY, { method: 'POST', body: JSON.stringify(o) });
+function pushCfg() {
+  if (!canal || !AVISOS) return;
+  clearTimeout(cfgTimer);
+  cfgTimer = setTimeout(() => { publish({ topic: canal + '-cfg', message: JSON.stringify({ umbral: thr, t: localT() }) }).catch(() => {}); }, 1500);
+}
+async function sync() {
+  if (!canal || !AVISOS) return;
+  let best = null;
   try {
-    const q = new URLSearchParams(location.search).get('canal');
-    if (q && /^[\w-]{8,64}$/.test(q)) {
-      canal = q; store.set('mareas.canal', q);
-      history.replaceState(null, '', location.pathname);
+    const r = await fetch(ESTADO, { cache: 'no-store' });
+    if (r.ok) { estado = await r.json(); if (typeof estado.umbral === 'number') best = { umbral: estado.umbral, t: estado.umbralT || 0 }; }
+  } catch {}
+  try {
+    const r = await fetch(`${NTFY}${canal}-cfg/json?poll=1&since=12h`);
+    for (const ln of (await r.text()).split('\n')) {
+      try { const m = JSON.parse(ln); if (m.event !== 'message') continue; const c = JSON.parse(m.message);
+        if (typeof c.umbral === 'number' && (!best || c.t > best.t)) best = c; } catch {}
     }
   } catch {}
-  const localT = () => +store.get('mareas.umbralT') || 0;
-  const publish = o => fetch(NTFY, { method: 'POST', body: JSON.stringify(o) });
-
-  function pushCfg() {                 // avisa al robot de avisos (y a tus otros dispositivos) del nuevo límite
-    if (!canal) return;
-    clearTimeout(cfgTimer);
-    cfgTimer = setTimeout(() => {
-      publish({ topic: canal + '-cfg', message: JSON.stringify({ umbral: thr, t: localT() }) }).catch(() => {});
-    }, 1500);
-  }
-  async function sync() {
-    if (!canal) return;
-    let best = null;
-    try {
-      const r = await fetch(ESTADO, { cache: 'no-store' });
-      if (r.ok) { estado = await r.json(); if (typeof estado.umbral === 'number') best = { umbral: estado.umbral, t: estado.umbralT || 0 }; }
-    } catch {}
-    try {
-      const r = await fetch(`${NTFY}${canal}-cfg/json?poll=1&since=12h`);
-      for (const ln of (await r.text()).split('\n')) {
-        try {
-          const m = JSON.parse(ln); if (m.event !== 'message') continue;
-          const c = JSON.parse(m.message);
-          if (typeof c.umbral === 'number' && (!best || c.t > best.t)) best = c;
-        } catch {}
-      }
-    } catch {}
-    if (best && best.t > localT()) setThr(best.umbral, best.t);
-    else if (localT() && (!best || localT() > best.t)) pushCfg();
-    avisosUI();
-  }
-  function avisosUI() {
-    $('avOff').hidden = !!canal; $('avOn').hidden = !canal;
-    if (!canal) return;
-    $('avCanal').textContent = canal;
-    $('avSub').href = /Android/i.test(navigator.userAgent)
-      ? `intent://ntfy.sh/${canal}#Intent;scheme=ntfy;package=io.heckel.ntfy;end`
-      : 'ntfy://ntfy.sh/' + canal;
-    let s = localT()
-      ? `Límite calibrado en <b>${fmtH(thr)}</b>: recibirás bajamar, pleamar, el momento en que se despeja el paso y un aviso 45 min antes de que se cierre.`
-      : 'Aún sin calibrar: por ahora solo llegan pleamar y bajamar. Los avisos de cruce empiezan cuando calibres el límite.';
-    s += ' Silencio de 23:00 a 07:00.';
-    if (estado && estado.hasta) s += ` Avisos programados hasta las ${esc(when(estado.hasta))}.`;
-    $('avState').innerHTML = s;
-  }
-  $('avCopy').addEventListener('click', async () => {
-    let ok = false;
-    try { await navigator.clipboard.writeText(canal); ok = true; } catch {
-      try {
-        const r = document.createRange(); r.selectNodeContents($('avCanal'));
-        const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-        ok = document.execCommand('copy');
-      } catch {}
-    }
-    $('avCopy').textContent = ok ? 'Copiado ✓' : 'Mantén pulsado el nombre para copiarlo';
-    setTimeout(() => { $('avCopy').textContent = 'Copiar'; }, 4000);
-  });
-  $('avTest').addEventListener('click', async () => {
-    $('avMsg').textContent = 'Enviando…';
-    try {
-      const r = await publish({ topic: canal, title: 'Aviso de prueba', message: 'Los avisos de marea de Rolecha ⇄ Isla Nao funcionan.', tags: ['ocean'] });
-      $('avMsg').textContent = r.ok ? 'Enviado ✓ Si ya te suscribiste en ntfy (paso 3), llega en segundos.' : 'No se pudo enviar (' + r.status + ').';
-    } catch { $('avMsg').textContent = 'Sin conexión.'; }
-  });
-  $('thr').addEventListener('input', e => setThr(+e.target.value));
-  $('calib').addEventListener('click', () => { if (D) setThr(hAt(Date.now())); });
-  $('thr').min = -3; $('thr').max = 3; $('thr').value = thr; $('thrOut').textContent = fmtH(thr);
-
-  /* ---------- arranque ---------- */
+  if (best && best.t > localT()) setThr(best.umbral, best.t);
+  else if (localT() && (!best || localT() > best.t)) pushCfg();
+  avisosUI();
+}
+function avisosUI() {
+  $('avOff').hidden = !!canal; $('avOn').hidden = !canal;
+  if (!canal) return;
+  $('avCanal').textContent = canal;
+  $('avSub').href = /Android/i.test(navigator.userAgent) ? `intent://ntfy.sh/${canal}#Intent;scheme=ntfy;package=io.heckel.ntfy;end` : 'ntfy://ntfy.sh/' + canal;
+  let s = `Límite en <b>${fmtH(thr)}</b>: recibirás bajamar, pleamar, el momento en que se despeja el paso y un aviso 45 min antes de que se cierre. Silencio de 23:00 a 07:00.`;
+  if (estado && estado.hasta) s += ` Avisos programados hasta las ${esc(when(estado.hasta))}.`;
+  $('avState').innerHTML = s;
+}
+$('avSet').addEventListener('click', () => {
+  const v = $('avIn').value.trim();
+  if (!/^[\w-]{8,64}$/.test(v)) { $('avIn').setCustomValidity('Mínimo 8 letras, números, - o _'); $('avIn').reportValidity(); return; }
+  canal = v; store.set('mareas.canal', v); avisosUI(); sync();
+});
+$('avIn').addEventListener('input', () => $('avIn').setCustomValidity(''));
+async function copy(text, el) {
+  try { await navigator.clipboard.writeText(text); return true; } catch {}
+  try { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return document.execCommand('copy'); } catch { return false; }
+}
+$('avCopy').addEventListener('click', async () => {
+  const ok = await copy(canal, $('avCanal'));
+  $('avCopy').textContent = ok ? 'Copiado ✓' : 'Mantén pulsado el nombre para copiarlo';
+  setTimeout(() => { $('avCopy').textContent = 'Copiar'; }, 4000);
+});
+$('avTest').addEventListener('click', async () => {
+  $('avMsg').textContent = 'Enviando…';
   try {
-    const c = JSON.parse(store.get('mareas.datos'));
-    if (c && c.t0 + (c.v.length - 1) * H > Date.now() + 2 * H) setData(c);
-  } catch {}
-  render();
-  requestAnimationFrame(drawWater);
-  load();
-  avisosUI(); sync();
-  setInterval(sync, 10 * 60e3);
-  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
-  setInterval(render, 20e3);
-  setInterval(load, 30 * 60e3);
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) return;
-    render();
-    if (!D || Date.now() - D.fetched > 30 * 60e3) load();
-  });
-  addEventListener('online', load);
-})();
+    const r = await publish({ topic: canal, title: 'Aviso de prueba', message: `Los avisos de marea de ${P.nombre} funcionan.`, tags: ['ocean'] });
+    $('avMsg').textContent = r.ok ? 'Enviado ✓ Si ya te suscribiste en ntfy (paso 3), llega en segundos.' : 'No se pudo enviar (' + r.status + ').';
+  } catch { $('avMsg').textContent = 'Sin conexión.'; }
+});
+
+/* ---------- compartir ---------- */
+if (APK) $('apkBtn').hidden = true;
+$('shareBtn').addEventListener('click', async () => {
+  const data = { title: 'Marea · ' + P.nombre, text: 'Mareas y horario para cruzar a ' + P.nombre, url: DESCARGA };
+  if (navigator.share) { try { await navigator.share(data); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  const sp = document.createElement('span'); sp.textContent = DESCARGA;
+  $('shareMsg').textContent = (await copy(DESCARGA, sp)) ? 'Enlace copiado: ' + DESCARGA : DESCARGA;
+});
+
+/* ---------- arranque ---------- */
+$('place').textContent = P.paso ? `${P.paso.desde} ⇄ ${P.nombre}` : P.nombre;
+document.title = 'Marea · ' + P.nombre;
+try {
+  const c = JSON.parse(store.get(K('datos')));
+  if (c && c.t0 + (c.v.length - 1) * H > Date.now()) D = c;
+} catch {}
+buildScene();
+showTab(tab);
+requestAnimationFrame(drawWater);
+load(); avisosUI(); sync();
+setInterval(sync, 10 * 60e3);
+setInterval(() => { if (keyOf(Date.now()) !== keyOf(Date.now() - 20e3) && sel === keyOf(Date.now() - 20e3)) sel = today(); renderAll(); }, 20e3);
+setInterval(load, 30 * 60e3);
+let rz, lastW = 0;
+new ResizeObserver(es => { const w = Math.round(es[0].contentRect.width); if (w === lastW) return; lastW = w; clearTimeout(rz); rz = setTimeout(renderAll, 80); }).observe(document.querySelector('main'));
+document.addEventListener('visibilitychange', () => { if (document.hidden) return; renderAll(); if (!D || Date.now() - D.fetched > 30 * 60e3) load(); });
+addEventListener('online', load);
+if (!APK && 'serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>

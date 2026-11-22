@@ -1,6 +1,6 @@
 // Guarda la app para que abra sin conexión. Siempre intenta primero la red (así las actualizaciones llegan solas).
-const CACHE = 'marea-v1';
-const SHELL = ['./', 'manifest.webmanifest', 'icon-192.png'];
+const CACHE = 'marea-v2';
+const SHELL = ['./', 'lugares.js', 'marea-calc.js', 'qr.svg', 'manifest.webmanifest', 'icon-192.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

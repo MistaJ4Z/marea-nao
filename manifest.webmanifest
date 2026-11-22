@@ -1,7 +1,7 @@
 {
   "name": "Marea Rolecha ⇄ Isla Nao",
   "short_name": "Marea Nao",
-  "description": "Altura de la marea en tiempo real y ventanas para cruzar a Isla Nao.",
+  "description": "Mareas de cualquier día y horarios para cruzar a Isla Nao.",
   "lang": "es",
   "start_url": "./",
   "scope": "./",

@@ -1,0 +1,9 @@
+{
+  "appId": "io.github.mistaj4z.mareanao",
+  "appName": "Marea Nao",
+  "webDir": "www",
+  "android": {
+    "adjustMarginsForEdgeToEdge": "force",
+    "backgroundColor": "#f3efe6"
+  }
+}
