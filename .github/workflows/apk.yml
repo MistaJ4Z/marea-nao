@@ -1,7 +1,7 @@
 name: APK Android
 
 # Empaqueta la app web en un APK (Capacitor), lo firma y lo publica como
-# release: https://github.com/MistaJ4Z/marea-nao/releases/latest/download/marea-nao.apk
+# release: https://github.com/MistaJ4Z/marea-nao/releases/latest/download/bajamar.apk (y marea-nao.apk, por enlaces antiguos)
 on:
   push:
     branches: [main]
@@ -62,7 +62,7 @@ jobs:
           XML
           sed -i 's/^ *//' $res/drawable/splash.xml
           sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/; s/versionName .*/versionName \"$VERSION\"/" android/app/build.gradle
-          sed -i 's/<string name="app_name">.*</<string name="app_name">Marea Nao</; s/<string name="title_activity_main">.*</<string name="title_activity_main">Marea Nao</' $res/values/strings.xml
+          sed -i 's/<string name="app_name">.*</<string name="app_name">Bajamar</; s/<string name="title_activity_main">.*</<string name="title_activity_main">Bajamar</' $res/values/strings.xml
 
       - name: Compilar
         working-directory: build/android
@@ -77,13 +77,14 @@ jobs:
           echo "$KS" | base64 -d > ks.p12
           bt=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
           $bt/zipalign -f -p 4 build/android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
-          $bt/apksigner sign --ks ks.p12 --ks-type PKCS12 --ks-key-alias marea --ks-pass env:KS_PASS --out marea-nao.apk aligned.apk
-          $bt/apksigner verify --print-certs marea-nao.apk | head -3
+          $bt/apksigner sign --ks ks.p12 --ks-type PKCS12 --ks-key-alias marea --ks-pass env:KS_PASS --out bajamar.apk aligned.apk
+          $bt/apksigner verify --print-certs bajamar.apk | head -3
           rm ks.p12
 
       - name: Publicar
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v$VERSION" marea-nao.apk --latest --title "Marea Nao $VERSION" \
+          cp bajamar.apk marea-nao.apk
+          gh release create "v$VERSION" bajamar.apk marea-nao.apk --latest --title "Bajamar $VERSION" \
             --notes "APK para Android. Página de descarga: https://mistaj4z.github.io/marea-nao/descargar.html"

@@ -1,7 +1,7 @@
 {
-  "name": "Marea Rolecha ⇄ Isla Nao",
-  "short_name": "Marea Nao",
-  "description": "Mareas de cualquier día y horarios para cruzar a Isla Nao.",
+  "name": "Bajamar",
+  "short_name": "Bajamar",
+  "description": "Mareas de cualquier día, sin internet. Incluye los horarios para cruzar a Isla Nao.",
   "lang": "es",
   "start_url": "./",
   "scope": "./",
